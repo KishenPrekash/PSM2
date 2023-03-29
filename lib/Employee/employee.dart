@@ -6,6 +6,7 @@ import 'package:flutter_test_a/Employee/applyLeave.dart';
 import 'package:flutter_test_a/Employee/EmpProfile.dart';
 import 'package:flutter_test_a/Employee/attendance.dart';
 import 'package:flutter_test_a/Employee/leaveStatus.dart';
+import 'package:flutter_test_a/Employee/viewPayslip.dart';
 import 'package:flutter_test_a/services/location_services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_test_a/model/user.dart';
@@ -32,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
     FontAwesomeIcons.calendar,
     FontAwesomeIcons.user,
     FontAwesomeIcons.wpforms,
+    FontAwesomeIcons.moneyBill1Wave,
   ];
   late SharedPreferences sharedPreferences;
 
@@ -81,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
           new CalendarScreen(),
           new EmployeProfile(),
           new LeaveStatusScreen(userId: Users.userId),
+          new PayslipScreen(employeeId: Users.userId),
         ],
       ),
       bottomNavigationBar: Container(

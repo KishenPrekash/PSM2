@@ -1,3 +1,4 @@
+import 'package:elegant_notification/elegant_notification.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -31,9 +32,18 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           children: <Widget>[
             Container(
-              color: Colors.cyan,
+              decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                      colors: [
+                        Color(0xffff4590),
+                        Color(0xff382743),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: [0.0, 1.0],
+                      tileMode: TileMode.clamp)),
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.70,
+              height: MediaQuery.of(context).size.height,
               child: Center(
                 child: Container(
                   margin: EdgeInsets.all(12),
@@ -47,11 +57,34 @@ class _LoginPageState extends State<LoginPage> {
                           height: 30,
                         ),
                         Text(
-                          "Login",
+                          "Welcome Back",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             fontSize: 40,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 350,
+                          left: 0,
+                          right: 0,
+                          child: Column(
+                            children: [
+                              Image.asset(
+                                'assets/signin.png',
+                                width: 130,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        const Text(
+                          'LOGIN',
+                          style: TextStyle(
+                            fontSize: 19,
+                            color: Colors.white,
                           ),
                         ),
                         SizedBox(
@@ -62,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
-                            hintText: 'ID',
+                            hintText: 'Email',
                             enabled: true,
                             contentPadding: const EdgeInsets.only(
                                 left: 14.0, bottom: 8.0, top: 8.0),
@@ -76,11 +109,13 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           validator: (value) {
-                            if (value!.isEmpty) {
-                              return "ID cannot be empty";
+                            if (value!.length == 0) {
+                              return ("Email cannot be empty");
                             }
-                            if (value.length < 6) {
-                              return ("Please enter a valid id with minimum 6 characters");
+                            if (!RegExp(
+                                    "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]")
+                                .hasMatch(value)) {
+                              return ("Please enter a valid email");
                             } else {
                               return null;
                             }
@@ -91,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                           keyboardType: TextInputType.emailAddress,
                         ),
                         SizedBox(
-                          height: 20,
+                          height: 40,
                         ),
                         TextFormField(
                           controller: passwordController,
@@ -124,10 +159,10 @@ class _LoginPageState extends State<LoginPage> {
                           validator: (value) {
                             RegExp regex = new RegExp(r'^.{6,}$');
                             if (value!.isEmpty) {
-                              return "Password cannot be empty";
+                              return ("Password cannot be empty");
                             }
                             if (!regex.hasMatch(value)) {
-                              return ("please enter valid password min. 6 character");
+                              return ("Please enter valid password min. 6 character");
                             } else {
                               return null;
                             }
@@ -149,7 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                           height: 40,
                           onPressed: () {
                             setState(() {
-                              visible = true;
+                              visible = false;
                             });
                             signIn(
                                 emailController.text, passwordController.text);
@@ -165,6 +200,20 @@ class _LoginPageState extends State<LoginPage> {
                         SizedBox(
                           height: 10,
                         ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Register(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "New User ? Sign Up",
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ),
                         Visibility(
                             maintainSize: true,
                             maintainAnimation: true,
@@ -177,49 +226,6 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                   ),
-                ),
-              ),
-            ),
-            Container(
-              color: Colors.white,
-              width: MediaQuery.of(context).size.width,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 20,
-                    ),
-                    MaterialButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(20.0),
-                        ),
-                      ),
-                      elevation: 5.0,
-                      height: 40,
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Register(),
-                          ),
-                        );
-                      },
-                      color: Colors.blue[900],
-                      child: Text(
-                        "Register Now",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 15,
-                    ),
-                  ],
                 ),
               ),
             ),

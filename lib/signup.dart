@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:elegant_notification/elegant_notification.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test_a/verifyEmailPage.dart';
@@ -44,7 +45,16 @@ class _RegisterState extends State<Register> {
         child: Column(
           children: <Widget>[
             Container(
-              color: Colors.cyan,
+              decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                      colors: [
+                        Color(0xffff4590),
+                        Color(0xff382743),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: [0.0, 1.0],
+                      tileMode: TileMode.clamp)),
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
               child: SingleChildScrollView(
@@ -73,6 +83,49 @@ class _RegisterState extends State<Register> {
                         SizedBox(
                           height: 50,
                         ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Role : ",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            DropdownButton<String>(
+                              dropdownColor: Colors.blue[900],
+                              isDense: true,
+                              isExpanded: false,
+                              iconEnabledColor: Colors.white,
+                              focusColor: Colors.white,
+                              items: options.map((String dropDownStringItem) {
+                                return DropdownMenuItem<String>(
+                                  value: dropDownStringItem,
+                                  child: Text(
+                                    dropDownStringItem,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (newValueSelected) {
+                                setState(() {
+                                  _currentItemSelected = newValueSelected!;
+                                  role = newValueSelected;
+                                });
+                              },
+                              value: _currentItemSelected,
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 50,
+                        ),
                         TextFormField(
                           controller: emailController,
                           decoration: InputDecoration(
@@ -93,12 +146,20 @@ class _RegisterState extends State<Register> {
                           ),
                           validator: (value) {
                             if (value!.length == 0) {
-                              return "Email cannot be empty";
+                              ElegantNotification.error(
+                                      title: Text("Error"),
+                                      description:
+                                          Text("Email cannot be empty"))
+                                  .show(context);
                             }
                             if (!RegExp(
                                     "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]")
                                 .hasMatch(value)) {
-                              return ("Please enter a valid email");
+                              ElegantNotification.error(
+                                      title: Text("Error"),
+                                      description:
+                                          Text("Please enter a valid email"))
+                                  .show(context);
                             } else {
                               return null;
                             }
@@ -114,7 +175,7 @@ class _RegisterState extends State<Register> {
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
-                            hintText: 'ID',
+                            hintText: 'Username',
                             enabled: true,
                             contentPadding: const EdgeInsets.only(
                                 left: 14.0, bottom: 8.0, top: 8.0),
@@ -129,7 +190,7 @@ class _RegisterState extends State<Register> {
                           ),
                           validator: (value) {
                             if (value!.isEmpty) {
-                              return "Username cannot be empty";
+                              return ("Username cannot be empty");
                             }
                             if (value.length < 6) {
                               return ("Please enter a valid username with minimum 6 characters");
@@ -174,10 +235,10 @@ class _RegisterState extends State<Register> {
                           validator: (value) {
                             RegExp regex = new RegExp(r'^.{6,}$');
                             if (value!.isEmpty) {
-                              return "Password cannot be empty";
+                              return ("Password cannot be empty");
                             }
                             if (!regex.hasMatch(value)) {
-                              return ("please enter valid password min. 6 character");
+                              return ("Please enter a valid password with minimum 6 characters");
                             } else {
                               return null;
                             }
@@ -218,7 +279,11 @@ class _RegisterState extends State<Register> {
                           validator: (value) {
                             if (confirmpassController.text !=
                                 passwordController.text) {
-                              return "Password did not match";
+                              ElegantNotification.error(
+                                      title: Text("Error"),
+                                      description:
+                                          Text("Password did not match"))
+                                  .show(context);
                             } else {
                               return null;
                             }
@@ -227,46 +292,6 @@ class _RegisterState extends State<Register> {
                         ),
                         SizedBox(
                           height: 20,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Role : ",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            DropdownButton<String>(
-                              dropdownColor: Colors.blue[900],
-                              isDense: true,
-                              isExpanded: false,
-                              iconEnabledColor: Colors.white,
-                              focusColor: Colors.white,
-                              items: options.map((String dropDownStringItem) {
-                                return DropdownMenuItem<String>(
-                                  value: dropDownStringItem,
-                                  child: Text(
-                                    dropDownStringItem,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (newValueSelected) {
-                                setState(() {
-                                  _currentItemSelected = newValueSelected!;
-                                  role = newValueSelected;
-                                });
-                              },
-                              value: _currentItemSelected,
-                            ),
-                          ],
                         ),
                         SizedBox(
                           height: 20,
@@ -300,6 +325,20 @@ class _RegisterState extends State<Register> {
                         ),
                         SizedBox(
                           height: 20,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LoginPage(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Already have account ? Log in",
+                            style: TextStyle(color: Colors.white70),
+                          ),
                         ),
                       ],
                     ),
@@ -348,6 +387,6 @@ class _RegisterState extends State<Register> {
         MaterialPageRoute(
             builder: (context) =>
                 // VerifyEmailScreen(email: emailController.text)
-                LoginPage()));
+                EmailVerificationScreen()));
   }
 }

@@ -49,6 +49,9 @@ dependencies:
   table_calendar: ^3.0.8
   image_picker: ^0.8.7
   firebase_storage: ^11.0.16
+  elegant_notification: ^1.8.1
+  email_auth: ^1.0.0
+  mailer: ^6.0.0
   
 
 

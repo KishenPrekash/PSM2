@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_test_a/Employee/employee.dart';
+import 'package:flutter_test_a/Employee/leaveStatus.dart';
 import 'package:flutter_test_a/model/user.dart';
 import 'package:intl/intl.dart';
 
@@ -14,6 +16,9 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
   DateTime startDate = DateTime.now();
   DateTime endDate = DateTime.now();
   String reason = '';
+  String status = '';
+
+  Color primary = const Color(0xffeef444c);
 
   Future<void> _selectStartDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -58,6 +63,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
       'startDate': startDate,
       'endDate': endDate,
       'reason': reason,
+      'status': "Pending",
     }).then((value) {
       showDialog(
         context: context,
@@ -98,7 +104,21 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: primary,
         title: Text('Leave Request'),
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(),
+              ),
+            );
+          },
+          child: const Icon(
+            Icons.arrow_back,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -134,6 +154,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                 children: [
                   Text(DateFormat('EEE, MMM d, yyyy').format(startDate)),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(primary: primary),
                     onPressed: () => _selectStartDate(context),
                     child: Text('Select'),
                   ),
@@ -149,6 +170,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                 children: [
                   Text(DateFormat('EEE, MMM d, yyyy').format(endDate)),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(primary: primary),
                     onPressed: () => _selectEndDate(context),
                     child: Text('Select'),
                   ),
@@ -174,6 +196,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
               SizedBox(height: 20.0),
               Center(
                 child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(primary: primary),
                   onPressed: () => _submitLeaveRequest(),
                   child: Text('Submit'),
                 ),

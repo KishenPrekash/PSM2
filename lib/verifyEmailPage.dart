@@ -1,81 +1,74 @@
+import 'dart:async';
+
+import 'package:elegant_notification/elegant_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_test_a/login.dart';
 
-class VerifyEmailScreen extends StatelessWidget {
-  final String email;
+class EmailVerificationScreen extends StatefulWidget {
+  @override
+  _EmailVerificationScreenState createState() =>
+      _EmailVerificationScreenState();
+}
 
-  VerifyEmailScreen({required this.email});
+class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
+  final _auth = FirebaseAuth.instance;
+  late User _user;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _user = _auth.currentUser!;
+    _user.sendEmailVerification();
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
+      _user = _auth.currentUser!;
+      await _user.reload();
+      if (_user.emailVerified) {
+        ElegantNotification.info(
+                title: Text("Verified"),
+                description: Text("Your email has been verified"))
+            .show(context);
+        timer.cancel();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginPage(),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final User? user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF64B5F6),
-              Color(0xFF2196F3),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Verify Your Email',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 20.0),
-                Text(
-                  'Please verify your email address to continue using our app.',
-                  style: TextStyle(color: Colors.white, fontSize: 18.0),
-                ),
-                SizedBox(height: 20.0),
-                Text(
-                  email,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 20.0),
-                if (user != null && !user.emailVerified)
-                  ElevatedButton(
-                    onPressed: () async {
-                      await user.sendEmailVerification();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Verification email sent.'),
-                        ),
-                      );
-                    },
-                    child: Text('Send Verification Email'),
-                  )
-                else if (user == null)
-                  Text(
-                    'You are not currently signed in.',
-                    style: TextStyle(color: Colors.white, fontSize: 18.0),
-                  )
-                else
-                  Text(
-                    'A verification email has already been sent to $email. Please check your inbox or spam folder.',
-                    style: TextStyle(color: Colors.white, fontSize: 18.0),
-                  ),
-              ],
+      appBar: AppBar(
+        title: Text('Email Verification'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Thank you for signing up! Please verify your email address to complete your registration.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
             ),
-          ),
+            SizedBox(height: 32),
+            Text(
+              'A verification email has been sent to ${_user.email}. Please check your inbox and follow the instructions to complete your account registration.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
         ),
       ),
     );
