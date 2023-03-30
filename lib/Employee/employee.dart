@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
           new CalendarScreen(),
           new EmployeProfile(),
           new LeaveStatusScreen(userId: Users.userId),
-          new PayslipScreen(employeeId: Users.userId),
+          new EmployeeScreen(),
         ],
       ),
       bottomNavigationBar: Container(

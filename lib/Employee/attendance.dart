@@ -200,7 +200,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 return Container(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    DateFormat('hh:mm:ss a').format(DateTime.now()),
+                    DateFormat('HH:mm:ss a').format(DateTime.now()),
                     style: TextStyle(
                       fontFamily: "NexaRegular",
                       fontSize: screenWidth / 20,
