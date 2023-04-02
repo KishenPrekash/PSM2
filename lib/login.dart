@@ -2,6 +2,8 @@ import 'package:elegant_notification/elegant_notification.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_test_a/Supervisor/ViewAttendance.dart';
+import 'package:flutter_test_a/Supervisor/manageLeave.dart';
 import 'package:flutter_test_a/model/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test_a/resetPassword.dart';
@@ -238,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
   void route() async {
     User? user = FirebaseAuth.instance.currentUser;
     var kk = FirebaseFirestore.instance
-        .collection('Employee')
+        .collection('Supervisor')
         .doc(user!.uid)
         .get()
         .then((DocumentSnapshot documentSnapshot) async {
@@ -248,20 +250,26 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => Supervisor(),
+              builder: (context) => ManageLeaveScreen(),
             ),
           );
-        } else {
-          Users.userId = documentSnapshot.get('id');
+        }
+      } else {
+        var employeeSnapshot = await FirebaseFirestore.instance
+            .collection('Employee')
+            .doc(user!.uid)
+            .get();
+        if (employeeSnapshot.exists) {
+          Users.userId = employeeSnapshot.get('id');
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => HomeScreen(),
             ),
           );
+        } else {
+          print('Document does not exist on the database');
         }
-      } else {
-        print('Document does not exist on the database');
       }
     });
   }

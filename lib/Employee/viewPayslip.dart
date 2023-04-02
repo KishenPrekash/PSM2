@@ -61,14 +61,17 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
             var totalHours = 0.0;
             var totalPay = 0.0;
             records.forEach((record) {
-              DateTime checkInDateTime =
-                  DateFormat('HH:mm').parse(record['checkIn']);
-              DateTime checkOutDateTime =
-                  DateFormat('HH:mm').parse(record['checkOut']);
-              if (checkInDateTime != null && checkOutDateTime != null) {
-                var duration = checkOutDateTime.difference(checkInDateTime);
-                totalHours += duration.inMinutes / 60.0;
-                totalPay += duration.inMinutes / 60.0 * 15.0; // $15 per hour
+              if (record['checkIn'] != "--/--" &&
+                  record['checkOut'] != "--/--") {
+                DateTime checkInDateTime =
+                    DateFormat('HH:mm').parse(record['checkIn']);
+                DateTime checkOutDateTime =
+                    DateFormat('HH:mm').parse(record['checkOut']);
+                if (checkInDateTime != null && checkOutDateTime != null) {
+                  var duration = checkOutDateTime.difference(checkInDateTime);
+                  totalHours += duration.inMinutes / 60.0;
+                  totalPay += duration.inMinutes / 60.0 * 15.0; // $15 per hour
+                }
               }
             });
             var payWidget = Column(

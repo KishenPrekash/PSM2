@@ -229,9 +229,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         innerColor: primary,
                         key: key,
                         onSubmit: () async {
-                          Future.delayed(const Duration(seconds: 3), () {
-                            key.currentState!.reset();
-                          });
                           if (Users.lat != 0) {
                             _getLocation();
 
@@ -290,7 +287,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               });
                             }
 
-                            // key.currentState!.reset();
+                            key.currentState!.reset();
                           } else {
                             Timer(const Duration(seconds: 3), () async {
                               _getLocation();

@@ -52,6 +52,8 @@ dependencies:
   elegant_notification: ^1.8.1
   email_auth: ^1.0.0
   mailer: ^6.0.0
+  pdf: ^3.10.1
+  path_provider: ^2.0.14
   
 
 
