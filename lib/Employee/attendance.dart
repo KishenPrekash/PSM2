@@ -1,8 +1,13 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:image_compare/image_compare.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test_a/model/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 import 'package:geocoding/geocoding.dart';
@@ -21,6 +26,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   String checkIn = "--/--";
   String checkOut = "--/--";
   String location = " ";
+  String checkInlocation = " ";
+  String checkOutlocation = " ";
 
   Color primary = const Color(0xffeef444c);
 
@@ -56,11 +63,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       setState(() {
         checkIn = snap2['checkIn'];
         checkOut = snap2['checkOut'];
+        checkInlocation = snap2['checkInLocation'];
+        checkOutlocation = snap2['checkOutLocation'];
       });
     } catch (e) {
       setState(() {
         checkIn = "--/--";
         checkOut = "--/--";
+        checkInlocation = "--";
+        checkOutlocation = "--";
       });
     }
   }
@@ -75,29 +86,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       child: Column(
         children: [
           Container(
-            alignment: Alignment.centerLeft,
-            margin: const EdgeInsets.only(top: 32),
-            child: Text(
-              "Welcome",
-              style: TextStyle(
-                color: Colors.black54,
-                fontFamily: "NexaRegular",
-                fontSize: screenWidth / 20,
-              ),
-            ),
-          ),
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Employee " + Users.userId,
-              style: TextStyle(
-                fontFamily: "NexaBold",
-                fontSize: screenWidth / 18,
-              ),
-            ),
-          ),
-          Container(
-            alignment: Alignment.centerLeft,
+            alignment: Alignment.center,
             margin: const EdgeInsets.only(top: 32),
             child: Text(
               "Today's Status",
@@ -110,16 +99,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 32),
             height: 150,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black26,
                   blurRadius: 10,
-                  offset: Offset(2, 2),
+                  offset: const Offset(2, 2),
                 ),
               ],
-              borderRadius: BorderRadius.all(Radius.circular(20)),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -130,42 +119,50 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Check In",
                         style: TextStyle(
                           fontFamily: "NexaRegular",
-                          fontSize: screenWidth / 20,
+                          fontSize: 20,
                           color: Colors.black54,
                         ),
                       ),
+                      const SizedBox(height: 10),
                       Text(
                         checkIn,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontFamily: "NexaBold",
-                          fontSize: screenWidth / 18,
+                          fontSize: 30,
                         ),
                       ),
                     ],
                   ),
+                ),
+                const VerticalDivider(
+                  color: Colors.grey,
+                  thickness: 1,
+                  indent: 20,
+                  endIndent: 20,
                 ),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Check Out",
                         style: TextStyle(
                           fontFamily: "NexaRegular",
-                          fontSize: screenWidth / 20,
+                          fontSize: 20,
                           color: Colors.black54,
                         ),
                       ),
+                      const SizedBox(height: 10),
                       Text(
                         checkOut,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontFamily: "NexaBold",
-                          fontSize: screenWidth / 18,
+                          fontSize: 30,
                         ),
                       ),
                     ],
@@ -174,41 +171,75 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               ],
             ),
           ),
-          Container(
-              alignment: Alignment.centerLeft,
-              child: RichText(
-                text: TextSpan(
-                    text: DateTime.now().day.toString(),
+          Card(
+            margin: EdgeInsets.symmetric(vertical: 8.0),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Date',
                     style: TextStyle(
-                      color: primary,
-                      fontSize: screenWidth / 18,
-                      fontFamily: "NexaRBold",
-                    ),
-                    children: [
-                      TextSpan(
-                          text: DateFormat(' MMMM yyyy').format(DateTime.now()),
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: screenWidth / 20,
-                            fontFamily: "NexaRBold",
-                          ))
-                    ]),
-              )),
-          StreamBuilder(
-              stream: Stream.periodic(const Duration(seconds: 1)),
-              builder: (context, snapshot) {
-                return Container(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    DateFormat('HH:mm:ss a').format(DateTime.now()),
-                    style: TextStyle(
-                      fontFamily: "NexaRegular",
-                      fontSize: screenWidth / 20,
+                      fontFamily: 'NexaRegular',
+                      fontSize: 16,
                       color: Colors.black54,
                     ),
                   ),
-                );
-              }),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        DateTime.now().day.toString(),
+                        style: TextStyle(
+                          fontFamily: 'NexaRBold',
+                          fontSize: 24,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat('MMMM yyyy').format(DateTime.now()),
+                        style: TextStyle(
+                          fontFamily: 'NexaRegular',
+                          fontSize: 24,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Time',
+                    style: TextStyle(
+                      fontFamily: 'NexaRegular',
+                      fontSize: 16,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  StreamBuilder(
+                    stream: Stream.periodic(const Duration(seconds: 1)),
+                    builder: (context, snapshot) {
+                      return Text(
+                        DateFormat('HH:mm:ss a').format(DateTime.now()),
+                        style: TextStyle(
+                          fontFamily: 'NexaRegular',
+                          fontSize: 24,
+                          color: Colors.black,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
           checkOut == "--/--"
               ? Container(
                   margin: const EdgeInsets.only(top: 24, bottom: 12),
@@ -231,7 +262,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         onSubmit: () async {
                           if (Users.lat != 0) {
                             _getLocation();
-
                             QuerySnapshot snap = await FirebaseFirestore
                                 .instance
                                 .collection("Employee")
@@ -249,6 +279,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                             try {
                               String checkIn = snap2['checkIn'];
+                              String checkInLoc = snap2['checkInLocation'];
+                              checkOutlocation = location;
 
                               setState(() {
                                 checkOut =
@@ -263,15 +295,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   .update({
                                 'date': Timestamp.now(),
                                 'checkIn': checkIn,
+                                'checkInLocation': checkInLoc,
                                 'checkOut':
                                     DateFormat('hh:mm').format(DateTime.now()),
-                                'checkInLocation': location,
+                                'checkOutLocation': checkOutlocation,
                               });
                             } catch (e) {
                               setState(() {
                                 checkIn =
                                     DateFormat('hh:mm').format(DateTime.now());
                               });
+                              checkInlocation = location;
                               await FirebaseFirestore.instance
                                   .collection("Employee")
                                   .doc(snap.docs[0].id)
@@ -283,7 +317,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 'checkIn':
                                     DateFormat('hh:mm').format(DateTime.now()),
                                 'checkOut': "--/--",
-                                'checkOutLocation': location,
+                                'checkOutLocation': "--/--",
+                                'checkInLocation': checkInlocation,
                               });
                             }
 
@@ -309,6 +344,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                               try {
                                 String checkIn = snap2['checkIn'];
+                                checkInlocation = location;
 
                                 setState(() {
                                   checkOut = DateFormat('hh:mm')
@@ -325,9 +361,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   'checkIn': checkIn,
                                   'checkOut': DateFormat('hh:mm')
                                       .format(DateTime.now()),
-                                  'checkInLocation': location,
+                                  'checkInLocation': checkInlocation,
                                 });
                               } catch (e) {
+                                checkOutlocation = location;
                                 setState(() {
                                   checkIn = DateFormat('hh:mm')
                                       .format(DateTime.now());
@@ -343,7 +380,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   'checkIn': DateFormat('hh:mm')
                                       .format(DateTime.now()),
                                   'checkOut': "--/--",
-                                  'checkOutLocation': location,
+                                  'checkOutLocation': checkOutlocation,
                                 });
                               }
                               key.currentState!.reset();
@@ -365,11 +402,72 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     ),
                   ),
                 ),
-          location != " "
-              ? Text(
-                  "Location: " + location,
-                )
-              : const SizedBox(),
+          Column(
+            children: [
+              if (checkInlocation != "")
+                Container(
+                  margin: EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(
+                      color: Colors.blue[200]!,
+                      width: 1.0,
+                    ),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          color: Colors.blue[300], size: 28),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          "Check In Location: " + checkInlocation,
+                          style: TextStyle(
+                            fontFamily: "NexaRegular",
+                            fontSize: 18,
+                            color: Colors.blue[800],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (checkOutlocation != "")
+                Container(
+                  margin: EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[50],
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(
+                      color: Colors.orange[200]!,
+                      width: 1.0,
+                    ),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          color: Colors.orange[300], size: 28),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          "Check Out Location: " + checkOutlocation,
+                          style: TextStyle(
+                            fontFamily: "NexaRegular",
+                            fontSize: 18,
+                            color: Colors.orange[800],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          )
         ],
       ),
     ));

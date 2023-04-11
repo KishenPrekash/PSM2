@@ -26,12 +26,7 @@ class _LeaveStatusScreenState extends State<LeaveStatusScreen> {
             padding: const EdgeInsets.only(right: 20.0),
             child: GestureDetector(
               onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LeaveRequestScreen(),
-                  ),
-                );
+                _showBottomSheet(context);
               },
               child: const Icon(
                 Icons.add,
@@ -77,7 +72,7 @@ class _LeaveStatusScreenState extends State<LeaveStatusScreen> {
               DateTime currentDate = DateTime.now();
 
               if (currentDate.isAfter(endDate) ||
-                  currentDate.isBefore(startDate)) {
+                  startDate.isBefore(currentDate)) {
                 leaveRequest.reference.update({'status': 'Expired'});
                 statusIcon = Icons.warning;
                 statusIconColor = Colors.yellow;
@@ -86,10 +81,15 @@ class _LeaveStatusScreenState extends State<LeaveStatusScreen> {
                   case 'Approved':
                     statusIcon = Icons.check;
                     statusIconColor = Colors.green;
+
                     break;
                   case 'Rejected':
                     statusIcon = Icons.close;
                     statusIconColor = Colors.red;
+                    break;
+                  case 'Expired':
+                    statusIcon = Icons.warning;
+                    statusIconColor = Colors.grey;
                     break;
                   default:
                     statusIcon = Icons.warning;
@@ -98,58 +98,85 @@ class _LeaveStatusScreenState extends State<LeaveStatusScreen> {
               }
 
               return Card(
+                margin: EdgeInsets.all(8.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                elevation: 2.0,
                 child: ListTile(
-                  title: Text(leaveRequest['leaveType']),
+                  title: Text(
+                    leaveRequest['leaveType'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: 5.0),
                       Text(
-                          'Start Date: ${DateFormat('EEE, MMM d, yyyy').format(startDate)}'),
+                        'Start Date: ${DateFormat('EEE, MMM d, yyyy').format(startDate)}',
+                        style: TextStyle(fontSize: 16.0),
+                      ),
                       SizedBox(height: 5.0),
                       Text(
-                          'End Date: ${DateFormat('EEE, MMM d, yyyy').format(endDate)}'),
+                        'End Date: ${DateFormat('EEE, MMM d, yyyy').format(endDate)}',
+                        style: TextStyle(fontSize: 16.0),
+                      ),
                       SizedBox(height: 5.0),
-                      Text('Reason: ${leaveRequest['reason']}'),
-                      SizedBox(height: 5.0),
-                      Row(
-                        children: [
-                          Icon(statusIcon, color: statusIconColor),
-                          SizedBox(width: 5.0),
-                          Text('Status: ${leaveRequest['status']}'),
-                        ],
+                      Text(
+                        'Status: ${leaveRequest['status']}',
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
                     ],
                   ),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('Delete leave request'),
-                            content: Text(
-                                'Are you sure you want to delete this leave request?'),
-                            actions: <Widget>[
-                              TextButton(
-                                child: Text('Cancel'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              TextButton(
-                                child: Text('Delete'),
-                                onPressed: () {
-                                  _deleteLeaveRequest(leaveRequest);
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        statusIcon,
+                        color: statusIconColor,
+                        size: 30.0,
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                          size: 30.0,
+                        ),
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Delete leave request'),
+                                  content: Text(
+                                      'Are you sure you want to delete this leave request?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: Text('Cancel'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: Text('Delete'),
+                                      onPressed: () {
+                                        _deleteLeaveRequest(leaveRequest);
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              });
                         },
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -167,4 +194,11 @@ Future<void> _deleteLeaveRequest(DocumentSnapshot leaveRequest) async {
   } catch (e) {
     print('Error deleting leave request: $e');
   }
+}
+
+void _showBottomSheet(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) => LeaveRequestScreen(),
+  );
 }

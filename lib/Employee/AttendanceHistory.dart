@@ -33,7 +33,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             alignment: Alignment.centerLeft,
             margin: const EdgeInsets.only(top: 32),
             child: Text(
-              "My Attendance",
+              "Attendance History",
               style: TextStyle(
                 color: Colors.black54,
                 fontFamily: "NexaBold",
@@ -49,9 +49,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 child: Text(
                   _month,
                   style: TextStyle(
-                    color: Colors.black54,
+                    color: Colors.black,
                     fontFamily: "NexaBold",
-                    fontSize: screenWidth / 18,
+                    fontSize: screenWidth / 16,
+                    letterSpacing: 1.5,
                   ),
                 ),
               ),
@@ -98,12 +99,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       });
                     }
                   },
-                  child: Text(
-                    "Pick a month",
-                    style: TextStyle(
-                      color: Colors.black54,
-                      fontFamily: "NexaBold",
-                      fontSize: screenWidth / 18,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.blueGrey,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      "Change Month",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: "NexaBold",
+                        fontSize: screenWidth / 22,
+                        letterSpacing: 1.2,
+                      ),
                     ),
                   ),
                 ),
@@ -152,7 +170,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     child: Container(
                                       margin: const EdgeInsets.only(),
                                       decoration: BoxDecoration(
-                                        color: primary,
+                                        color: Colors.blueGrey,
                                         borderRadius: const BorderRadius.all(
                                             Radius.circular(20)),
                                       ),

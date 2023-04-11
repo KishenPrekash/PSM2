@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test_a/verifyEmailPage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'login.dart';
 // import 'model.dart';
 
@@ -21,6 +23,15 @@ class _RegisterState extends State<Register> {
   final _formkey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance;
 
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().getImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
   final TextEditingController passwordController = new TextEditingController();
   final TextEditingController confirmpassController =
       new TextEditingController();
@@ -29,6 +40,7 @@ class _RegisterState extends State<Register> {
   final TextEditingController mobile = new TextEditingController();
   bool _isObscure = true;
   bool _isObscure2 = true;
+  File? _imageFile;
   File? file;
   var options = [
     'Employee',
@@ -362,19 +374,32 @@ class _RegisterState extends State<Register> {
           )
           .then(
               (value) => {postDetailsToFirestore(rool, empID, password, email)})
-          .catchError((e) {});
+          .catchError((e) {
+        e.toString();
+      });
     }
   }
 
   postDetailsToFirestore(
       String rool, String empID, String password, String email) async {
-    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     var user = _auth.currentUser;
+
     if (rool == "Employee") {
+      final imageFile =
+          await ImagePicker().getImage(source: ImageSource.camera);
+      final storageRef =
+          FirebaseStorage.instance.ref().child('employee_photos/${user!.uid}');
+      final uploadTask = storageRef.putFile(File(imageFile!.path));
+      final downloadUrl = await (await uploadTask).ref.getDownloadURL();
       CollectionReference ref =
           FirebaseFirestore.instance.collection('Employee');
-      ref.doc(user!.uid).set(
-          {'role': rool, 'id': empID, 'password': password, 'email': email});
+      ref.doc(user!.uid).set({
+        'role': rool,
+        'id': empID,
+        'password': password,
+        'email': email,
+        'photo': downloadUrl.toString(),
+      });
     } else {
       CollectionReference ref =
           FirebaseFirestore.instance.collection('Supervisor');

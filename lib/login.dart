@@ -8,6 +8,7 @@ import 'package:flutter_test_a/model/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test_a/resetPassword.dart';
 import 'Employee/employee.dart';
+import 'Employee/EmpDashboard.dart';
 import 'Supervisor/supervisor.dart';
 import 'signup.dart';
 
@@ -58,13 +59,15 @@ class _LoginPageState extends State<LoginPage> {
                         SizedBox(
                           height: 30,
                         ),
-                        Text(
-                          "Welcome Back",
+                        const Text(
+                          'LOGIN',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
                             fontSize: 40,
+                            color: Colors.white,
                           ),
+                        ),
+                        SizedBox(
+                          height: 20,
                         ),
                         Positioned(
                           bottom: 350,
@@ -73,20 +76,10 @@ class _LoginPageState extends State<LoginPage> {
                           child: Column(
                             children: [
                               Image.asset(
-                                'assets/signin.png',
+                                'assets/login.png',
                                 width: 130,
                               ),
                             ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        const Text(
-                          'LOGIN',
-                          style: TextStyle(
-                            fontSize: 19,
-                            color: Colors.white,
                           ),
                         ),
                         SizedBox(
@@ -264,7 +257,7 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => HomeScreen(),
+              builder: (context) => EmpDashboard(),
             ),
           );
         } else {

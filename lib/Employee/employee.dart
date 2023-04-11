@@ -41,7 +41,40 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _startLocationService();
-    getId();
+    getId().then((value) {
+      _getCredentials();
+      _getProfilePic();
+    });
+  }
+
+  void _getCredentials() async {
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection("Employee")
+          .doc(Users.id)
+          .get();
+
+      setState(() {
+        Users.canEdit = doc['canEdit'];
+        Users.firstName = doc['firstName'];
+        Users.lastName = doc['lastName'];
+        Users.address = doc['address'];
+        Users.birthDate = doc['birthDate'];
+      });
+    } catch (e) {
+      e.toString();
+    }
+  }
+
+  void _getProfilePic() async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection("Employee")
+        .doc(Users.id)
+        .get();
+
+    setState(() {
+      Users.profilePicLink = doc['profilePic'];
+    });
   }
 
   void _startLocationService() async {
@@ -60,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void getId() async {
+  Future<void> getId() async {
     QuerySnapshot snap = await FirebaseFirestore.instance
         .collection("Employee")
         .where('id', isEqualTo: Users.userId)
@@ -83,7 +116,6 @@ class _HomeScreenState extends State<HomeScreen> {
           new CalendarScreen(),
           new EmployeProfile(),
           new LeaveStatusScreen(userId: Users.userId),
-          new EmployeeScreen(),
         ],
       ),
       bottomNavigationBar: Container(

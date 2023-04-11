@@ -73,8 +73,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => LeaveRequestScreen()));
+                Navigator.pop(context);
               },
               child: Text('OK'),
             ),
@@ -90,8 +89,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => LeaveRequestScreen()));
+                Navigator.pop(context);
               },
               child: Text('OK'),
             ),
@@ -103,23 +101,6 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: primary,
-        title: Text('Leave Request'),
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(),
-              ),
-            );
-          },
-          child: const Icon(
-            Icons.arrow_back,
-          ),
-        ),
-      ),
       body: SingleChildScrollView(
         child: Container(
           padding: EdgeInsets.all(20.0),
