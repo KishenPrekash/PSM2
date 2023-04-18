@@ -39,7 +39,7 @@ class _LeaveStatusScreenState extends State<LeaveStatusScreen> {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection("Employee")
-            .doc(Users.id)
+            .doc(Employee.id)
             .collection("leaveRequests")
             .snapshots(),
         builder: (context, snapshot) {

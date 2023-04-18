@@ -12,8 +12,23 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            'Attendance for ${DateFormat('dd MMMM yyyy').format(DateTime.now())}'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(width: 10),
+            Text(
+              'Attendance for ${DateFormat('dd MMMM yyyy').format(DateTime.now())}',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('Employee').snapshots(),
@@ -47,27 +62,74 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                   Map<String, dynamic>? record =
                       snapshot.data!.data() as Map<String, dynamic>?;
+                  Map<String, dynamic> empData =
+                      employees[index].data() as Map<String, dynamic>;
 
-                  String name = record?['name'] ?? '';
+                  String name = empData['id'] ?? '';
                   String checkInTime = record?['checkIn'] ?? '';
                   String checkInLocation = record?['checkInLocation'] ?? '';
                   String checkOutTime = record?['checkOut'] ?? '';
                   String checkOutLocation = record?['checkOutLocation'] ?? '';
 
                   return Card(
+                    elevation: 4,
+                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
-                      padding: EdgeInsets.all(8.0),
+                      padding: EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(name,
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          if (record == null)
+                            Text(
+                              'No record found',
                               style: TextStyle(
-                                  fontSize: 18.0, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 8.0),
-                          Text('Check-In Time: $checkInTime'),
-                          Text('Check-In Location: $checkInLocation'),
-                          Text('Check-Out Time: $checkOutTime'),
-                          Text('Check-Out Location: $checkOutLocation'),
+                                fontStyle: FontStyle.italic,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          if (checkInTime.isNotEmpty)
+                            Row(
+                              children: [
+                                Icon(Icons.timer),
+                                SizedBox(width: 8),
+                                Text(checkInTime),
+                              ],
+                            ),
+                          if (checkInLocation.isNotEmpty)
+                            Row(
+                              children: [
+                                Icon(Icons.location_on),
+                                SizedBox(width: 8),
+                                Text(checkInLocation),
+                              ],
+                            ),
+                          if (checkOutTime.isNotEmpty)
+                            Row(
+                              children: [
+                                Icon(Icons.timer_off),
+                                SizedBox(width: 8),
+                                Text(checkOutTime),
+                              ],
+                            ),
+                          if (checkOutLocation.isNotEmpty)
+                            Row(
+                              children: [
+                                Icon(Icons.location_on),
+                                SizedBox(width: 8),
+                                Text(checkOutLocation),
+                              ],
+                            ),
                         ],
                       ),
                     ),

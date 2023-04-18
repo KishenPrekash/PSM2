@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test_a/Employee/AttendanceHistory.dart';
-import 'package:flutter_test_a/Employee/applyLeave.dart';
 import 'package:flutter_test_a/Employee/EmpProfile.dart';
 import 'package:flutter_test_a/Employee/attendance.dart';
 import 'package:flutter_test_a/Employee/leaveStatus.dart';
@@ -51,15 +50,15 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection("Employee")
-          .doc(Users.id)
+          .doc(Employee.id)
           .get();
 
       setState(() {
-        Users.canEdit = doc['canEdit'];
-        Users.firstName = doc['firstName'];
-        Users.lastName = doc['lastName'];
-        Users.address = doc['address'];
-        Users.birthDate = doc['birthDate'];
+        Employee.canEdit = doc['canEdit'];
+        Employee.firstName = doc['firstName'];
+        Employee.lastName = doc['lastName'];
+        Employee.address = doc['address'];
+        Employee.birthDate = doc['birthDate'];
       });
     } catch (e) {
       e.toString();
@@ -69,11 +68,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void _getProfilePic() async {
     DocumentSnapshot doc = await FirebaseFirestore.instance
         .collection("Employee")
-        .doc(Users.id)
+        .doc(Employee.id)
         .get();
 
     setState(() {
-      Users.profilePicLink = doc['profilePic'];
+      Employee.profilePicLink = doc['profilePic'];
     });
   }
 
@@ -82,12 +81,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     LocationService().getLongitude().then((value) {
       setState(() {
-        Users.long = value!;
+        Employee.long = value!;
       });
 
       LocationService().getLatitude().then((value) {
         setState(() {
-          Users.lat = value!;
+          Employee.lat = value!;
         });
       });
     });
@@ -96,11 +95,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> getId() async {
     QuerySnapshot snap = await FirebaseFirestore.instance
         .collection("Employee")
-        .where('id', isEqualTo: Users.userId)
+        .where('id', isEqualTo: Employee.employeeId)
         .get();
 
     setState(() {
-      Users.id = snap.docs[0].id;
+      Employee.id = snap.docs[0].id;
     });
   }
 
@@ -115,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
           new AttendanceScreen(),
           new CalendarScreen(),
           new EmployeProfile(),
-          new LeaveStatusScreen(userId: Users.userId),
+          new LeaveStatusScreen(userId: Employee.employeeId),
         ],
       ),
       bottomNavigationBar: Container(

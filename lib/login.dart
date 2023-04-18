@@ -239,11 +239,11 @@ class _LoginPageState extends State<LoginPage> {
         .then((DocumentSnapshot documentSnapshot) async {
       if (documentSnapshot.exists) {
         if (documentSnapshot.get('role') == "Supervisor") {
-          Users.userId = documentSnapshot.get('id');
+          Supervisor.supervisorId = documentSnapshot.get('id');
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => ManageLeaveScreen(),
+              builder: (context) => SupervisorScr(),
             ),
           );
         }
@@ -253,11 +253,11 @@ class _LoginPageState extends State<LoginPage> {
             .doc(user!.uid)
             .get();
         if (employeeSnapshot.exists) {
-          Users.userId = employeeSnapshot.get('id');
+          Employee.employeeId = employeeSnapshot.get('id');
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => EmpDashboard(),
+              builder: (context) => HomeScreen(),
             ),
           );
         } else {

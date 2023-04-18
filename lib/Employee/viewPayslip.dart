@@ -21,7 +21,7 @@ class _PayslipScreenState extends State<PayslipScreen> {
   Future<void> getAttendanceData() async {
     QuerySnapshot snap = await FirebaseFirestore.instance
         .collection("Employee")
-        .where('id', isEqualTo: Users.userId)
+        .where('id', isEqualTo: Employee.employeeId)
         .get();
 
     String formattedMonth = DateFormat.MMMM()
@@ -64,7 +64,7 @@ class _PayslipScreenState extends State<PayslipScreen> {
     final pdf = pw.Document();
     QuerySnapshot snap = await FirebaseFirestore.instance
         .collection("Employee")
-        .where('id', isEqualTo: Users.userId)
+        .where('id', isEqualTo: Employee.employeeId)
         .get();
     pdf.addPage(
       pw.Page(

@@ -51,7 +51,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
   Future<void> _submitLeaveRequest() async {
     QuerySnapshot snap = await FirebaseFirestore.instance
         .collection("Employee")
-        .where('id', isEqualTo: Users.userId)
+        .where('id', isEqualTo: Employee.employeeId)
         .get();
 
     FirebaseFirestore.instance

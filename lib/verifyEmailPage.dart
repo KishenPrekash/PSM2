@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';

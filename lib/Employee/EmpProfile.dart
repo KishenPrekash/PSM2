@@ -36,17 +36,17 @@ class _EmployeProfileState extends State<EmployeProfile> {
 
     Reference ref = FirebaseStorage.instance
         .ref()
-        .child("${Users.userId.toLowerCase()}_profilepic.jpg");
+        .child("${Employee.employeeId.toLowerCase()}_profilepic.jpg");
 
     await ref.putFile(File(image!.path));
 
     ref.getDownloadURL().then((value) async {
       setState(() {
-        Users.profilePicLink = value;
+        Employee.profilePicLink = value;
       });
       await FirebaseFirestore.instance
           .collection("Employee")
-          .doc(Users.id)
+          .doc(Employee.id)
           .update({
         'profilePic': value,
       });
@@ -97,7 +97,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
                   color: primary,
                 ),
                 child: Center(
-                  child: Users.profilePicLink == " "
+                  child: Employee.profilePicLink == " "
                       ? const Icon(
                           Icons.person,
                           color: Colors.white,
@@ -105,7 +105,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
                         )
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-                          child: Image.network(Users.profilePicLink),
+                          child: Image.network(Employee.profilePicLink),
                         ),
                 ),
               ),
@@ -113,7 +113,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
             Align(
               alignment: Alignment.center,
               child: Text(
-                "${Users.userId}",
+                "${Employee.employeeId}",
                 style: const TextStyle(
                   fontFamily: "NexaBold",
                   fontSize: 18,
@@ -125,10 +125,10 @@ class _EmployeProfileState extends State<EmployeProfile> {
             ),
             isEditing
                 ? textField("First Name", "First name", firstNameController)
-                : field("First Name", Users.firstName),
+                : field("First Name", Employee.firstName),
             isEditing
                 ? textField("Last Name", "Last name", lastNameController)
-                : field("Last Name", Users.lastName),
+                : field("Last Name", Employee.lastName),
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -193,7 +193,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
                 child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      isEditing ? birth : Users.birthDate,
+                      isEditing ? birth : Employee.birthDate,
                       style: const TextStyle(
                         color: Colors.black54,
                         fontFamily: "NexaBold",
@@ -204,7 +204,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
             ),
             isEditing
                 ? textField("Address", "Address", addressController)
-                : field("Address", Users.address),
+                : field("Address", Employee.address),
             GestureDetector(
               onTap: () async {
                 if (isEditing) {
@@ -224,7 +224,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
                   } else {
                     await FirebaseFirestore.instance
                         .collection("Employee")
-                        .doc(Users.id)
+                        .doc(Employee.id)
                         .update({
                       'firstName': firstName,
                       'lastName': lastName,
@@ -236,11 +236,11 @@ class _EmployeProfileState extends State<EmployeProfile> {
                     setState(() {
                       isEditing = false;
                       setState(() {
-                        Users.canEdit = false;
-                        Users.firstName = firstName;
-                        Users.lastName = lastName;
-                        Users.birthDate = birthDate;
-                        Users.address = address;
+                        Employee.canEdit = false;
+                        Employee.firstName = firstName;
+                        Employee.lastName = lastName;
+                        Employee.birthDate = birthDate;
+                        Employee.address = address;
                       });
                     });
                   }
