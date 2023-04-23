@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test_a/Supervisor/ViewAttendance.dart';
+import 'package:flutter_test_a/Supervisor/editProfile.dart';
 import 'package:flutter_test_a/Supervisor/employeeList.dart';
 import 'package:flutter_test_a/Supervisor/manageLeave.dart';
 import 'package:flutter_test_a/model/user.dart';
@@ -56,7 +57,7 @@ class _SupervisorScrState extends State<SupervisorScr> {
         children: [
           new EmployeeList(),
           new AttendanceScreen(),
-          new ManageLeaveScreen(),
+          new EditProfileScreen(uid: Supervisor.supervisorId),
           new ManageLeaveScreen(),
         ],
       ),

@@ -57,6 +57,7 @@ dependencies:
   pdf: ^3.8.4
   google_fonts: ^4.0.3
   charts_flutter: ^0.12.0
+
   
 
 

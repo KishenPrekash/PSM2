@@ -64,6 +64,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
       'endDate': endDate,
       'reason': reason,
       'status': "Pending",
+      'requestBy': Employee.employeeId,
     }).then((value) {
       showDialog(
         context: context,

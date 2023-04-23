@@ -73,7 +73,7 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                             employees[index].data() as Map<String, dynamic>;
                         Map<String, dynamic> leaveRequestData =
                             leaveRequests[index].data() as Map<String, dynamic>;
-                        String name = empData['id'];
+                        String name = leaveRequestData['requestBy'];
                         DateTime startDate =
                             leaveRequestData['startDate'].toDate();
                         DateTime endDate = leaveRequestData['endDate'].toDate();
@@ -136,16 +136,48 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                   children: [
                                     ElevatedButton(
                                       onPressed: () {
-                                        FirebaseFirestore.instance
-                                            .collection("Employee")
-                                            .doc(leaveRequests[index]
-                                                .reference
-                                                .parent
-                                                .parent!
-                                                .id)
-                                            .collection('leaveRequests')
-                                            .doc(leaveRequests[index].id)
-                                            .update({'status': 'Approved'});
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('Confirm Approval'),
+                                              content: Text(
+                                                  'Are you sure you want to approve this request?'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Cancel'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: Text('Approve'),
+                                                  onPressed: () {
+                                                    // Update the status to "Approved"
+                                                    FirebaseFirestore.instance
+                                                        .collection("Employee")
+                                                        .doc(
+                                                            leaveRequests[index]
+                                                                .reference
+                                                                .parent
+                                                                .parent!
+                                                                .id)
+                                                        .collection(
+                                                            'leaveRequests')
+                                                        .doc(
+                                                            leaveRequests[index]
+                                                                .id)
+                                                        .update({
+                                                      'status': 'Approved'
+                                                    });
+                                                    // Close the dialog box
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
                                       },
                                       child: Text(
                                         'Approve',
@@ -163,16 +195,48 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                     ),
                                     ElevatedButton(
                                       onPressed: () {
-                                        FirebaseFirestore.instance
-                                            .collection("Employee")
-                                            .doc(leaveRequests[index]
-                                                .reference
-                                                .parent
-                                                .parent!
-                                                .id)
-                                            .collection('leaveRequests')
-                                            .doc(leaveRequests[index].id)
-                                            .update({'status': 'Rejected'});
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('Confirm Rejection'),
+                                              content: Text(
+                                                  'Are you sure you want to reject this request?'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Cancel'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: Text('Reject'),
+                                                  onPressed: () {
+                                                    // Update the status to "Rejected"
+                                                    FirebaseFirestore.instance
+                                                        .collection("Employee")
+                                                        .doc(
+                                                            leaveRequests[index]
+                                                                .reference
+                                                                .parent
+                                                                .parent!
+                                                                .id)
+                                                        .collection(
+                                                            'leaveRequests')
+                                                        .doc(
+                                                            leaveRequests[index]
+                                                                .id)
+                                                        .update({
+                                                      'status': 'Rejected'
+                                                    });
+                                                    // Close the dialog box
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
                                       },
                                       child: Text(
                                         'Reject',
