@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test_a/model/user.dart';
-import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pdfLib;
-import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path/path.dart' as path;
+import 'package:flutter_excel/excel.dart' as excel;
+import 'package:excel/excel.dart';
+import 'package:path_provider/path_provider.dart';
 
 class PayslipScreen extends StatefulWidget {
   const PayslipScreen({Key? key}) : super(key: key);
@@ -17,48 +20,167 @@ class PayslipScreen extends StatefulWidget {
 class _PayslipScreenState extends State<PayslipScreen> {
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
-  final List<String> _months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
 
   @override
-  void initState() {
-    super.initState();
-    _selectedMonth = DateTime.now().month;
-    _selectedYear = DateTime.now().year;
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(width: 10),
+            Text(
+              'Payslip',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today,
+                    color: Colors.blue,
+                  ),
+                  SizedBox(width: 16),
+                  Text(
+                    'Select Month:',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  DropdownButton<int>(
+                    value: _selectedMonth,
+                    onChanged: (int? value) {
+                      setState(() {
+                        _selectedMonth = value!;
+                      });
+                    },
+                    items: List.generate(12, (index) {
+                      return DropdownMenuItem<int>(
+                        value: index + 1,
+                        child: Text(
+                          DateFormat('MMMM')
+                              .format(DateTime(2000, index + 1, 1)),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20),
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today,
+                    color: Colors.blue,
+                  ),
+                  SizedBox(width: 16),
+                  Text(
+                    'Select Year:',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  DropdownButton<int>(
+                    value: _selectedYear,
+                    onChanged: (int? value) {
+                      setState(() {
+                        _selectedYear = value!;
+                      });
+                    },
+                    items: List.generate(5, (index) {
+                      int year = DateTime.now().year - index;
+                      return DropdownMenuItem<int>(
+                        value: year,
+                        child: Text(
+                          year.toString(),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _downloadPayslip,
+              child: Text('Download Payslip'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  void _onMonthChanged(int? value) {
-    setState(() {
-      _selectedMonth = value!;
-    });
-  }
+  Future<void> _downloadPayslip() async {
+    String selectedMonth =
+        DateFormat('MMMM').format(DateTime(2000, _selectedMonth, 1));
+    String payslipFileName = 'Payslip_${selectedMonth}_$_selectedYear.xlsx';
 
-  void _onYearChanged(int? value) {
-    setState(() {
-      _selectedYear = value!;
-    });
-  }
-
-  void _downloadPayslip() async {
-    String selectedMonth = _months[_selectedMonth - 1];
-    String payslipFileName = 'Payslip_${selectedMonth}_$_selectedYear.pdf';
+    // Query the employee's information
+    DocumentSnapshot employeeSnapshot = await FirebaseFirestore.instance
+        .collection('Employee')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get();
+    String employeeName = employeeSnapshot['id'];
 
     // Query the attendance records for the selected month and year
     QuerySnapshot attendanceSnapshot = await FirebaseFirestore.instance
         .collection('Employee')
-        .doc(Employee.id) // replace with the employee's ID
+        .doc(FirebaseAuth.instance.currentUser!.uid)
         .collection('Record')
         .where('date',
             isGreaterThanOrEqualTo:
@@ -76,123 +198,92 @@ class _PayslipScreenState extends State<PayslipScreen> {
           ? DateFormat('hh:mm').parse(record['checkOut'])
           : DateTime.now();
       Duration workingHours = checkOut.difference(checkIn);
-      totalWorkingHours += workingHours.inHours;
+      totalWorkingHours += workingHours.inMinutes;
     }
 
-    // Calculate the salary based on the total working hours
-    double hourlyRate = 10.0; // replace with the employee's hourly rate
-    double totalSalary = totalWorkingHours * hourlyRate;
+    // Calculate earnings
+    double regularHours = totalWorkingHours / 60;
+    double overtimeHours = 0;
+    double totalEarnings = regularHours * 25;
+    String earningsDescription =
+        '- Regular Hours (${regularHours.toStringAsFixed(1)} x 25/hour): \$${totalEarnings.toStringAsFixed(2)}';
 
-    // Create the PDF document
-    final pdfLib.Document pdf = pdfLib.Document();
+    // Create the Excel workbook and worksheet
+    final workbook = Excel.createExcel();
+    final sheetName =
+        'Sheet_${DateFormat('MMMM_yyyy').format(DateTime(_selectedYear, _selectedMonth, 1))}';
+    final sheet = workbook[sheetName];
 
-    pdf.addPage(
-      pdfLib.Page(
-        build: (pdfLib.Context context) {
-          return pdfLib.Center(
-            child: pdfLib.Column(
-              mainAxisAlignment: pdfLib.MainAxisAlignment.center,
-              children: <pdfLib.Widget>[
-                pdfLib.Text(
-                  'Payslip for ${selectedMonth} ${_selectedYear}',
-                  style: pdfLib.TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: pdfLib.FontWeight.bold,
-                  ),
-                ),
-                pdfLib.SizedBox(height: 20.0),
-                pdfLib.Text(
-                  'Total working hours: ${totalWorkingHours} hours',
-                  style: pdfLib.TextStyle(fontSize: 16.0),
-                ),
-                pdfLib.SizedBox(height: 10.0),
-                pdfLib.Text(
-                  'Hourly rate: ${hourlyRate}',
-                  style: pdfLib.TextStyle(fontSize: 16.0),
-                ),
-                pdfLib.SizedBox(height: 10.0),
-                pdfLib.Text(
-                  'Total salary: ${totalSalary}',
-                  style: pdfLib.TextStyle(fontSize: 16.0),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
+    // Write the employee name and pay period
+    sheet.appendRow(['Employee Name: $employeeName']);
+    sheet.appendRow(['Pay Period: $selectedMonth $_selectedYear']);
+    sheet.appendRow([]);
 
-    // Get the directory for saving the file
-    final Directory directory = await getApplicationDocumentsDirectory();
-    final String documentPath = directory.path;
+    // Write the header row
+    sheet.appendRow([
+      'Date',
+      'Check In',
+      'Check In Location',
+      'Check Out',
+      'Check Out Location',
+      'Working Hours'
+    ]);
 
-    // Save the PDF file
-    final File file = File('$documentPath/$payslipFileName');
-    await file.writeAsBytes(await pdf.save());
+    // Write the attendance records to the worksheet
+    for (QueryDocumentSnapshot record in attendanceSnapshot.docs) {
+      String date =
+          DateFormat('MMMM d, yyyy').format(record['date'].toDate()).toString();
+      String checkIn = record['checkIn'].toString();
+      String checkInLocation = record['checkInLocation'].toString();
+      String checkOut = record['checkOut'].toString();
+      String checkOutLocation = record['checkOutLocation'].toString();
+      String workingHours = record['workingHours'] != null
+          ? record['workingHours'].toString()
+          : '-';
 
-    // Open the PDF file
-    //OpenFile.open('$documentPath/$payslipFileName');
-  }
+      sheet.appendRow([
+        date,
+        checkIn,
+        checkInLocation,
+        checkOut,
+        checkOutLocation,
+        workingHours
+      ]);
+    }
+    sheet.appendRow([]);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Payslip'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Select month:',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-            SizedBox(height: 8),
-            DropdownButton<int>(
-              value: _selectedMonth,
-              onChanged: _onMonthChanged,
-              items: List.generate(_months.length, (index) {
-                return DropdownMenuItem<int>(
-                  value: index + 1,
-                  child: Text(_months[index]),
-                );
-              }),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Select year:',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-            SizedBox(height: 8),
-            DropdownButton<int>(
-              value: _selectedYear,
-              onChanged: _onYearChanged,
-              items: List.generate(10, (index) {
-                int year = DateTime.now().year - index;
-                return DropdownMenuItem<int>(
-                  value: year,
-                  child: Text(year.toString()),
-                );
-              }),
-            ),
-            SizedBox(height: 32),
-            Center(
-              child: ElevatedButton(
-                onPressed: _downloadPayslip,
-                child: Text('Download Payslip'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    // Write the total working hours to the worksheet
+    sheet.appendRow(
+        ['Total Hours Worked:', '', '', '', '', totalWorkingHours.toString()]);
+    sheet.appendRow([]);
+
+    sheet.appendRow(['Earnings']);
+    sheet.appendRow([earningsDescription]);
+    sheet.appendRow([]);
+
+    Directory? directory = await getExternalStorageDirectory();
+
+    if (directory != null) {
+      String filePath = path.join(directory.path, payslipFileName);
+
+      // Write the total working hours to the worksheet
+      sheet.appendRow(
+          ['Total Working Hours:', '', '', '', '', totalWorkingHours]);
+
+      // Save the Excel file to device storage
+      final encoded = workbook.encode();
+      File(filePath).writeAsBytesSync(encoded!);
+
+      File file = File(filePath);
+      if (await file.exists()) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Payslip downloaded to $filePath'),
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error'),
+        ));
+      }
+    }
   }
 }

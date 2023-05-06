@@ -40,6 +40,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   void _getLocation() async {
+    // Get the location
     List<Placemark> placemark =
         await placemarkFromCoordinates(Employee.lat, Employee.long);
     setState(() {
@@ -288,6 +289,114 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         onSubmit: () async {
                           if (Employee.lat != 0) {
                             _getLocation();
+                            final now = DateTime.now();
+                            if (now.hour >= 17) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Cannot slide in"),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "You cannot slide in after 5pm",
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                          ),
+                                        ),
+                                        SizedBox(height: 10.0),
+                                        TextButton(
+                                          child: Text(
+                                            "OK",
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.blue),
+                                            padding: MaterialStateProperty.all(
+                                              EdgeInsets.symmetric(
+                                                horizontal: 20.0,
+                                                vertical: 10.0,
+                                              ),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                    backgroundColor: Colors.white,
+                                    elevation: 5.0,
+                                    contentPadding: EdgeInsets.all(20.0),
+                                  );
+                                },
+                              );
+                              return; // Do not proceed with check-in
+                            } else if (now.weekday == DateTime.saturday ||
+                                now.weekday == DateTime.sunday) {
+                              // Show a message to the user and do not get the location
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Cannot slide in"),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "You cannot slide in during weekends",
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                          ),
+                                        ),
+                                        SizedBox(height: 10.0),
+                                        TextButton(
+                                          child: Text(
+                                            "OK",
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.blue),
+                                            padding: MaterialStateProperty.all(
+                                              EdgeInsets.symmetric(
+                                                horizontal: 20.0,
+                                                vertical: 10.0,
+                                              ),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                    backgroundColor: Colors.white,
+                                    elevation: 5.0,
+                                    contentPadding: EdgeInsets.all(20.0),
+                                  );
+                                },
+                              );
+                              return; // Do not proceed with getting the location
+                            }
                             final snap = await FirebaseFirestore.instance
                                 .collection("Employee")
                                 .where('id', isEqualTo: Employee.employeeId)
@@ -325,11 +434,23 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 setState(() {
                                   checkInStatus = 'Late';
                                 });
-                                ElegantNotification.error(
-                                        title: Text("Late"),
-                                        description:
-                                            Text("You have slide in late"))
-                                    .show(context);
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text("Late"),
+                                      content: Text("You have slide in late"),
+                                      actions: [
+                                        TextButton(
+                                          child: Text("OK"),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
                               }
 
                               await FirebaseFirestore.instance

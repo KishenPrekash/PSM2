@@ -8,6 +8,10 @@ class AttendanceScreen extends StatefulWidget {
 }
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
+  int lateCount = 0;
+  int absentCount = 0;
+  int punctualCount = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,106 +44,251 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           }
 
           List<QueryDocumentSnapshot> employees = snapshot.data!.docs;
-
-          return ListView.builder(
-            itemCount: employees.length,
-            itemBuilder: (BuildContext context, int index) {
-              return StreamBuilder<DocumentSnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('Employee')
-                    .doc(employees[index].id)
-                    .collection('Record')
-                    .doc(DateFormat('dd MMMM yyyy').format(DateTime.now()))
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Card(
-                      child: ListTile(
-                        title: Text('Loading...'),
+          calculateSummary(employees);
+          return Column(
+            children: [
+              SizedBox(height: 16),
+              Text(
+                'Summary',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        lateCount.toString(),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
                       ),
-                    );
-                  }
+                      Text(
+                        'Late',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        absentCount.toString(),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        'Absent',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        punctualCount.toString(),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      Text(
+                        'Punctual',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: employees.length,
+                  itemBuilder: (context, index) {
+                    QueryDocumentSnapshot employee = employees[index];
+                    String name = employee['id'];
+                    String position = 'Employee';
+                    String id = employee.id;
 
-                  Map<String, dynamic>? record =
-                      snapshot.data!.data() as Map<String, dynamic>?;
-                  Map<String, dynamic> empData =
-                      employees[index].data() as Map<String, dynamic>;
+                    Stream<DocumentSnapshot> recordStream = FirebaseFirestore
+                        .instance
+                        .collection('Employee')
+                        .doc(id)
+                        .collection('Record')
+                        .doc(DateFormat('dd MMMM yyyy').format(DateTime.now()))
+                        .snapshots();
 
-                  String name = empData['id'] ?? '';
-                  String checkInTime = record?['checkIn'] ?? '';
-                  String checkInLocation = record?['checkInLocation'] ?? '';
-                  String checkOutTime = record?['checkOut'] ?? '';
-                  String checkOutLocation = record?['checkOutLocation'] ?? '';
+                    return StreamBuilder<DocumentSnapshot>(
+                      stream: recordStream,
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return Container();
+                        }
 
-                  return Card(
-                    elevation: 4,
-                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                        Map<String, dynamic>? record =
+                            snapshot.data!.data() as Map<String, dynamic>?;
+                        String checkInTime = record?['checkIn'] ?? '';
+                        String checkOutTime = record?['checkOut'] ?? '';
+
+                        Color containerColor;
+                        if (checkInTime.compareTo('08:00 AM') > 0) {
+                          // employee is absent
+                          containerColor = Colors.red;
+                        } else if (checkInTime.isEmpty ||
+                            checkOutTime.isEmpty) {
+                          // employee is late
+                          containerColor = Colors.grey;
+                        } else {
+                          // employee is punctual
+                          containerColor = Colors.green;
+                        }
+
+                        return Container(
+                          margin:
+                              EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: containerColor,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.shade300,
+                                offset: Offset(0, 2),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        position,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(width: 16),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      checkInTime,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: checkInTime.isEmpty
+                                            ? Colors.grey
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      checkOutTime,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: checkOutTime.isEmpty
+                                            ? Colors.grey
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(height: 16),
-                          if (record == null)
-                            Text(
-                              'No record found',
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          if (checkInTime.isNotEmpty)
-                            Row(
-                              children: [
-                                Icon(Icons.timer),
-                                SizedBox(width: 8),
-                                Text(checkInTime),
-                              ],
-                            ),
-                          if (checkInLocation.isNotEmpty)
-                            Row(
-                              children: [
-                                Icon(Icons.location_on),
-                                SizedBox(width: 8),
-                                Text(checkInLocation),
-                              ],
-                            ),
-                          if (checkOutTime.isNotEmpty)
-                            Row(
-                              children: [
-                                Icon(Icons.timer_off),
-                                SizedBox(width: 8),
-                                Text(checkOutTime),
-                              ],
-                            ),
-                          if (checkOutLocation.isNotEmpty)
-                            Row(
-                              children: [
-                                Icon(Icons.location_on),
-                                SizedBox(width: 8),
-                                Text(checkOutLocation),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
     );
+  }
+
+  void calculateSummary(List<QueryDocumentSnapshot> employees) async {
+    int lateCount = 0;
+    int absentCount = 0;
+    int punctualCount = 0;
+
+    // Create a list of futures that will complete when all stream listeners finish
+    List<Future> futures = [];
+
+    for (QueryDocumentSnapshot employee in employees) {
+      Future<DocumentSnapshot> recordFuture = FirebaseFirestore.instance
+          .collection('Employee')
+          .doc(employee.id)
+          .collection('Record')
+          .doc(DateFormat('dd MMMM yyyy').format(DateTime.now()))
+          .get();
+
+      futures.add(recordFuture.then((snapshot) {
+        Map<String, dynamic>? record = snapshot.data() as Map<String, dynamic>?;
+        if (record == null) {
+          absentCount++;
+        } else {
+          String checkInTime = record['checkIn'] ?? '';
+          String checkOutTime = record['checkOut'] ?? '';
+          if (checkInTime.isEmpty || checkOutTime.isEmpty) {
+            absentCount++;
+          } else if (checkInTime.compareTo('08:00 AM') > 0) {
+            lateCount++;
+          } else {
+            punctualCount++;
+          }
+        }
+      }));
+    }
+
+    // Wait for all futures to complete before updating the state
+    await Future.wait(futures);
+
+    setState(() {
+      this.lateCount = lateCount;
+      this.absentCount = absentCount;
+      this.punctualCount = punctualCount;
+    });
   }
 }

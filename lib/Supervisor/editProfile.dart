@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test_a/login.dart';
+import 'package:flutter_test_a/model/user.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String uid;
@@ -54,7 +55,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('Supervisor')
-            .doc(widget.uid)
+            .doc(Supervisor.supervisorId)
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {

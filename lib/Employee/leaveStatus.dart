@@ -19,8 +19,23 @@ class _LeaveStatusScreenState extends State<LeaveStatusScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: widget.primary,
-        title: Text('Leave Status'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(width: 10),
+            Text(
+              'Leave Status',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 20.0),
@@ -30,6 +45,7 @@ class _LeaveStatusScreenState extends State<LeaveStatusScreen> {
               },
               child: const Icon(
                 Icons.add,
+                color: Colors.black,
                 size: 26.0,
               ),
             ),
