@@ -20,13 +20,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     super.initState();
     _user = _auth.currentUser!;
     _user.sendEmailVerification();
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 2), (timer) async {
       _user = _auth.currentUser!;
       await _user.reload();
       if (_user.emailVerified) {
+        // ignore: use_build_context_synchronously
         ElegantNotification.info(
-                title: Text("Verified"),
-                description: Text("Your email has been verified"))
+                title: const Text("Verified"),
+                description: const Text("Your email has been verified"))
             .show(context);
         timer.cancel();
         Navigator.pushReplacement(
@@ -49,23 +50,23 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Email Verification'),
+        title: const Text('Email Verification'),
       ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
+            const Text(
               'Thank you for signing up! Please verify your email address to complete your registration.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 32),
+            const SizedBox(height: 32),
             Text(
               'A verification email has been sent to ${_user.email}. Please check your inbox and follow the instructions to complete your account registration.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16),
             ),
           ],
         ),
