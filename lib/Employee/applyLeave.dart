@@ -69,8 +69,8 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          title: Text('Leave Request Submitted'),
-          content: Text('Your leave request has been submitted.'),
+          title: const Text('Leave Request Submitted'),
+          content: const Text('Your leave request has been submitted.'),
           actions: [
             TextButton(
               onPressed: () {

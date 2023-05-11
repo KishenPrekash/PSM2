@@ -72,14 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
         .get();
 
     setState(() {
-      if (doc.exists &&
-          doc.data() != null &&
-          (doc.data()! as Map<String, dynamic>).containsKey('profilePic')) {
+      if ((doc.data()! as Map<String, dynamic>).containsKey('profilePic')) {
         Employee.profilePicLink = doc['profilePic'];
-      } else {
-        // Handle the case when the field doesn't exist
-        Employee.profilePicLink =
-            ''; // Set a default value or handle it as per your requirement
       }
     });
   }

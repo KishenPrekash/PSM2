@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:image_compare/image_compare.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -79,6 +80,47 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         checkInStatus = "--";
       });
     }
+  }
+
+  bool isEmployeeInCompanyLocation() {
+    // Replace companyLat and companyLng with the latitude and longitude of the company's location
+    double companyLat = 1.55636628;
+    double companyLng = 103.648055;
+
+    // Replace employeeLat and employeeLng with the latitude and longitude of the employee's current location
+    double employeeLat = Employee.lat;
+    double employeeLng = Employee.long;
+
+    // Calculate the distance between the employee's location and the company's location
+    double distance =
+        calculateDistance(employeeLat, employeeLng, companyLat, companyLng);
+
+    // Set a threshold distance within which the employee is considered to be in the company's location
+    double thresholdDistance = 1000; // Adjust the threshold distance as needed
+
+    // Check if the distance is within the threshold distance
+    return distance <= thresholdDistance;
+  }
+
+  double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
+    const double earthRadius = 6371; // Radius of the Earth in kilometers
+
+    double dLat = _toRadians(lat2 - lat1);
+    double dLng = _toRadians(lng2 - lng1);
+
+    double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_toRadians(lat1)) *
+            math.cos(_toRadians(lat2)) *
+            math.sin(dLng / 2) *
+            math.sin(dLng / 2);
+    double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    double distance = earthRadius * c;
+
+    return distance;
+  }
+
+  double _toRadians(double degree) {
+    return degree * (math.pi / 180);
   }
 
   Widget build(BuildContext context) {
@@ -290,7 +332,62 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           if (Employee.lat != 0) {
                             _getLocation();
                             final now = DateTime.now();
-                            if (now.hour >= 8 && now.minute > 0) {
+                            if (!isEmployeeInCompanyLocation()) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Cannot slide in"),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "You are not in the company's location.",
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                          ),
+                                        ),
+                                        SizedBox(height: 10.0),
+                                        TextButton(
+                                          child: Text(
+                                            "OK",
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.blue),
+                                            padding: MaterialStateProperty.all(
+                                              EdgeInsets.symmetric(
+                                                horizontal: 20.0,
+                                                vertical: 10.0,
+                                              ),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                    backgroundColor: Colors.white,
+                                    elevation: 5.0,
+                                    contentPadding: EdgeInsets.all(20.0),
+                                  );
+                                },
+                              );
+                              return; // Do not proceed with check-in
+                            }
+                            if (now.hour >= 8 &&
+                                now.minute > 0 &&
+                                checkOut == null) {
                               // Employee is late
                               ElegantNotification.error(
                                 title: Text("Late"),
@@ -363,7 +460,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     content: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(
+                                        const Text(
                                           "You cannot slide in during weekends",
                                           style: TextStyle(
                                             fontSize: 16.0,
@@ -408,90 +505,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               return; // Do not proceed with getting the location
                             }
 
-                            final pickedFile = await ImagePicker()
-                                .getImage(source: ImageSource.camera);
-                            if (pickedFile == null) {
-                              // User did not take a picture
-                              return;
-                            }
-
-                            // Verify the picture with the picture stored in Firebase
-                            final storageRef = FirebaseStorage.instance
-                                .ref()
-                                .child('employee_photos/${Employee.id}');
-                            final downloadUrl =
-                                await storageRef.getDownloadURL();
-                            final pic1 = await http.get(Uri.parse(downloadUrl));
-                            final bytes1 = pic1.bodyBytes;
-                            final pic2 = await pickedFile.readAsBytes();
-
-                            final result = await compareImages(
-                                src1: bytes1,
-                                src2: pic2,
-                                algorithm: ChiSquareDistanceHistogram());
-
-                            if (result < 0.9) {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text("Cannot slide in"),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          "The picture you took does not match the picture we have on file.",
-                                          style: TextStyle(
-                                            fontSize: 16.0,
-                                          ),
-                                        ),
-                                        SizedBox(height: 10.0),
-                                        TextButton(
-                                          child: Text(
-                                            "OK",
-                                            style: TextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          style: ButtonStyle(
-                                            backgroundColor:
-                                                MaterialStateProperty.all(
-                                              Colors.blue,
-                                            ),
-                                            padding: MaterialStateProperty.all(
-                                              EdgeInsets.symmetric(
-                                                horizontal: 20.0,
-                                                vertical: 10.0,
-                                              ),
-                                            ),
-                                          ),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                    backgroundColor: Colors.white,
-                                    elevation: 5.0,
-                                    contentPadding: EdgeInsets.all(20.0),
-                                  );
-                                },
-                              );
-                              return; // Do not proceed with check-in
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Successfully Recorded"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-
                             final snap = await FirebaseFirestore.instance
                                 .collection("Employee")
                                 .where('id', isEqualTo: Employee.employeeId)
@@ -509,13 +522,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               checkOutlocation = location;
                               setState(() {
                                 checkOut =
-                                    DateFormat('hh:mm').format(DateTime.now());
+                                    DateFormat('HH:mm').format(DateTime.now());
                               });
 
                               DateTime checkInTime =
-                                  DateFormat('hh:mm').parse(checkIn);
+                                  DateFormat('HH:mm').parse(checkIn);
                               DateTime checkOutTime =
-                                  DateFormat('hh:mm').parse(checkOut);
+                                  DateFormat('HH:mm').parse(checkOut);
                               Duration workingHours =
                                   checkOutTime.difference(checkInTime);
                               DateTime expectedCheckInTime = DateTime(
@@ -529,11 +542,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 setState(() {
                                   checkInStatus = 'Late';
                                 });
-                                ElegantNotification.error(
-                                        title: Text("Late"),
-                                        description:
-                                            Text("You have slide in late"))
-                                    .show(context);
                               }
 
                               await FirebaseFirestore.instance
@@ -547,7 +555,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 'checkIn': checkIn,
                                 'checkInLocation': checkInLoc,
                                 'checkOut':
-                                    DateFormat('hh:mm').format(DateTime.now()),
+                                    DateFormat('HH:mm').format(DateTime.now()),
                                 'checkOutLocation': checkOutlocation,
                                 'workingHours': workingHours.inMinutes,
                                 'checkInStatus':
@@ -556,7 +564,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             } catch (e) {
                               setState(() {
                                 checkIn =
-                                    DateFormat('hh:mm').format(DateTime.now());
+                                    DateFormat('HH:mm').format(DateTime.now());
                               });
                               checkInlocation = location;
                               DateTime expectedCheckInTime = DateTime(
@@ -580,7 +588,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   .set({
                                 'date': Timestamp.now(),
                                 'checkIn':
-                                    DateFormat('hh:mm').format(DateTime.now()),
+                                    DateFormat('HH:mm').format(DateTime.now()),
                                 'checkOut': "--/--",
                                 'checkOutLocation': "--/--",
                                 'checkInLocation': checkInlocation,
@@ -648,7 +656,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   String checkIn = snap2['checkIn'];
                                   checkInlocation = location;
                                   setState(() {
-                                    checkOut = DateFormat('hh:mm')
+                                    checkOut = DateFormat('HH:mm')
                                         .format(DateTime.now());
                                   });
                                   await FirebaseFirestore.instance
@@ -660,14 +668,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                       .update({
                                     'date': Timestamp.now(),
                                     'checkIn': checkIn,
-                                    'checkOut': DateFormat('hh:mm')
+                                    'checkOut': DateFormat('HH:mm')
                                         .format(DateTime.now()),
                                     'checkInLocation': checkInlocation,
                                   });
                                 } catch (e) {
                                   checkOutlocation = location;
                                   setState(() {
-                                    checkIn = DateFormat('hh:mm')
+                                    checkIn = DateFormat('HH:mm')
                                         .format(DateTime.now());
                                   });
                                   await FirebaseFirestore.instance
@@ -678,7 +686,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                           .format(DateTime.now()))
                                       .set({
                                     'date': Timestamp.now(),
-                                    'checkIn': DateFormat('hh:mm')
+                                    'checkIn': DateFormat('HH:mm')
                                         .format(DateTime.now()),
                                     'checkOut': "--/--",
                                     'checkOutLocation': checkOutlocation,
@@ -777,3 +785,87 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     ));
   }
 }
+
+  // final pickedFile = await ImagePicker()
+  //                               .getImage(source: ImageSource.camera);
+  //                           if (pickedFile == null) {
+  //                             // User did not take a picture
+  //                             return;
+  //                           }
+
+  //                           // Verify the picture with the picture stored in Firebase
+  //                           final storageRef = FirebaseStorage.instance
+  //                               .ref()
+  //                               .child('employee_photos/${Employee.id}');
+  //                           final downloadUrl =
+  //                               await storageRef.getDownloadURL();
+  //                           final pic1 = await http.get(Uri.parse(downloadUrl));
+  //                           final bytes1 = pic1.bodyBytes;
+  //                           final pic2 = await pickedFile.readAsBytes();
+
+  //                           final result = await compareImages(
+  //                               src1: bytes1,
+  //                               src2: pic2,
+  //                               algorithm: ChiSquareDistanceHistogram());
+
+  //                           if (result < 0.9) {
+  //                             showDialog(
+  //                               context: context,
+  //                               builder: (BuildContext context) {
+  //                                 return AlertDialog(
+  //                                   title: Text("Cannot slide in"),
+  //                                   content: Column(
+  //                                     mainAxisSize: MainAxisSize.min,
+  //                                     children: [
+  //                                       Text(
+  //                                         "The picture you took does not match the picture we have on file.",
+  //                                         style: TextStyle(
+  //                                           fontSize: 16.0,
+  //                                         ),
+  //                                       ),
+  //                                       SizedBox(height: 10.0),
+  //                                       TextButton(
+  //                                         child: Text(
+  //                                           "OK",
+  //                                           style: TextStyle(
+  //                                             fontSize: 16.0,
+  //                                             fontWeight: FontWeight.bold,
+  //                                             color: Colors.white,
+  //                                           ),
+  //                                         ),
+  //                                         style: ButtonStyle(
+  //                                           backgroundColor:
+  //                                               MaterialStateProperty.all(
+  //                                             Colors.blue,
+  //                                           ),
+  //                                           padding: MaterialStateProperty.all(
+  //                                             EdgeInsets.symmetric(
+  //                                               horizontal: 20.0,
+  //                                               vertical: 10.0,
+  //                                             ),
+  //                                           ),
+  //                                         ),
+  //                                         onPressed: () {
+  //                                           Navigator.of(context).pop();
+  //                                         },
+  //                                       ),
+  //                                     ],
+  //                                   ),
+  //                                   shape: RoundedRectangleBorder(
+  //                                     borderRadius: BorderRadius.circular(20.0),
+  //                                   ),
+  //                                   backgroundColor: Colors.white,
+  //                                   elevation: 5.0,
+  //                                   contentPadding: EdgeInsets.all(20.0),
+  //                                 );
+  //                               },
+  //                             );
+  //                             return; // Do not proceed with check-in
+  //                           } else {
+  //                             ScaffoldMessenger.of(context).showSnackBar(
+  //                               SnackBar(
+  //                                 content: Text("Successfully Recorded"),
+  //                                 backgroundColor: Colors.red,
+  //                               ),
+  //                             );
+  //                           }

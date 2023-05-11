@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:mailer/mailer.dart';
+
+import 'package:mailer/smtp_server.dart';
 
 class ManageLeaveScreen extends StatefulWidget {
   @override
@@ -140,8 +143,9 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
-                                              title: Text('Confirm Approval'),
-                                              content: Text(
+                                              title: const Text(
+                                                  'Confirm Approval'),
+                                              content: const Text(
                                                   'Are you sure you want to approve this request?'),
                                               actions: <Widget>[
                                                 TextButton(
@@ -156,19 +160,95 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                     // Update the status to "Approved"
                                                     FirebaseFirestore.instance
                                                         .collection("Employee")
-                                                        .doc(
-                                                            leaveRequests[index]
+                                                        .doc(leaveRequests[
+                                                                index]
+                                                            .reference
+                                                            .parent
+                                                            .parent!
+                                                            .id) // assuming user.uid is the ID of the employee
+                                                        .get()
+                                                        .then((DocumentSnapshot
+                                                            documentSnapshot) async {
+                                                      if (documentSnapshot
+                                                          .exists) {
+                                                        String employeeEmail =
+                                                            documentSnapshot[
+                                                                'email'];
+
+                                                        // Update the leave request status to "Approved"
+                                                        FirebaseFirestore
+                                                            .instance
+                                                            .collection(
+                                                                "Employee")
+                                                            .doc(leaveRequests[
+                                                                    index]
                                                                 .reference
                                                                 .parent
                                                                 .parent!
                                                                 .id)
-                                                        .collection(
-                                                            'leaveRequests')
-                                                        .doc(
-                                                            leaveRequests[index]
+                                                            .collection(
+                                                                'leaveRequests')
+                                                            .doc(leaveRequests[
+                                                                    index]
                                                                 .id)
-                                                        .update({
-                                                      'status': 'Approved'
+                                                            .update({
+                                                          'status': 'Approved'
+                                                        });
+
+                                                        // Send email to the employee
+                                                        String username =
+                                                            'ttasting66@outlook.com';
+                                                        String password =
+                                                            'Kp211200@';
+
+                                                        final smtpServer =
+                                                            SmtpServer(
+                                                                'smtp.office365.com',
+                                                                port: 587,
+                                                                ssl: false,
+                                                                username:
+                                                                    username,
+                                                                password:
+                                                                    password);
+                                                        final message =
+                                                            Message()
+                                                              ..from = Address(
+                                                                  username,
+                                                                  'Admin')
+                                                              ..recipients.add(
+                                                                  employeeEmail)
+                                                              ..subject =
+                                                                  'Leave Request Approved'
+                                                              ..text =
+                                                                  'Your leave request has been approved.';
+
+                                                        try {
+                                                          final sendReport =
+                                                              await send(
+                                                                  message,
+                                                                  smtpServer);
+                                                          // ignore: use_build_context_synchronously
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                                  SnackBar(
+                                                            content: Text(
+                                                                'Message sent: ${sendReport.toString()}'),
+                                                          ));
+                                                        } on MailerException catch (e) {
+                                                          // ignore: use_build_context_synchronously
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                                  SnackBar(
+                                                            content: Text(
+                                                                'Message not sent. ${e.toString()}'),
+                                                          ));
+                                                        }
+                                                      } else {
+                                                        print(
+                                                            'Document does not exist on the database');
+                                                      }
                                                     });
                                                     // Close the dialog box
                                                     Navigator.of(context).pop();
@@ -200,7 +280,7 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                           builder: (BuildContext context) {
                                             return AlertDialog(
                                               title: Text('Confirm Rejection'),
-                                              content: Text(
+                                              content: const Text(
                                                   'Are you sure you want to reject this request?'),
                                               actions: <Widget>[
                                                 TextButton(
@@ -215,19 +295,95 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                     // Update the status to "Rejected"
                                                     FirebaseFirestore.instance
                                                         .collection("Employee")
-                                                        .doc(
-                                                            leaveRequests[index]
+                                                        .doc(leaveRequests[
+                                                                index]
+                                                            .reference
+                                                            .parent
+                                                            .parent!
+                                                            .id) // assuming user.uid is the ID of the employee
+                                                        .get()
+                                                        .then((DocumentSnapshot
+                                                            documentSnapshot) async {
+                                                      if (documentSnapshot
+                                                          .exists) {
+                                                        String employeeEmail =
+                                                            documentSnapshot[
+                                                                'email'];
+
+                                                        // Update the leave request status to "Approved"
+                                                        FirebaseFirestore
+                                                            .instance
+                                                            .collection(
+                                                                "Employee")
+                                                            .doc(leaveRequests[
+                                                                    index]
                                                                 .reference
                                                                 .parent
                                                                 .parent!
                                                                 .id)
-                                                        .collection(
-                                                            'leaveRequests')
-                                                        .doc(
-                                                            leaveRequests[index]
+                                                            .collection(
+                                                                'leaveRequests')
+                                                            .doc(leaveRequests[
+                                                                    index]
                                                                 .id)
-                                                        .update({
-                                                      'status': 'Rejected'
+                                                            .update({
+                                                          'status': 'Rejected'
+                                                        });
+
+                                                        // Send email to the employee
+                                                        String username =
+                                                            'ttasting66@outlook.com';
+                                                        String password =
+                                                            'Kp211200@';
+
+                                                        final smtpServer =
+                                                            SmtpServer(
+                                                                'smtp.office365.com',
+                                                                port: 587,
+                                                                ssl: false,
+                                                                username:
+                                                                    username,
+                                                                password:
+                                                                    password);
+                                                        final message =
+                                                            Message()
+                                                              ..from = Address(
+                                                                  username,
+                                                                  'Admin')
+                                                              ..recipients.add(
+                                                                  employeeEmail)
+                                                              ..subject =
+                                                                  'Leave Request Rejected'
+                                                              ..text =
+                                                                  'Your leave request has been rejected.';
+
+                                                        try {
+                                                          final sendReport =
+                                                              await send(
+                                                                  message,
+                                                                  smtpServer);
+                                                          // ignore: use_build_context_synchronously
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                                  SnackBar(
+                                                            content: Text(
+                                                                'Message sent: ${sendReport.toString()}'),
+                                                          ));
+                                                        } on MailerException catch (e) {
+                                                          // ignore: use_build_context_synchronously
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                                  SnackBar(
+                                                            content: Text(
+                                                                'Message not sent. ${e.toString()}'),
+                                                          ));
+                                                        }
+                                                      } else {
+                                                        print(
+                                                            'Document does not exist on the database');
+                                                      }
                                                     });
                                                     // Close the dialog box
                                                     Navigator.of(context).pop();

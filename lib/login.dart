@@ -262,8 +262,6 @@ class _LoginPageState extends State<LoginPage> {
             .get();
         if (employeeSnapshot.exists) {
           Employee.employeeId = employeeSnapshot.get('id');
-          // ignore: use_build_context_synchronously
-          FirebaseAuth.instance.currentUser!.sendEmailVerification();
 
           Navigator.pushReplacement(
             context,
