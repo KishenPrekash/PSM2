@@ -63,10 +63,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           }
 
           final data = snapshot.data!;
-          _password = data['password'];
-          _role = data['role'];
-          _empID = data['id'];
-
+          if (data != null) {
+            _password = data['password'] as String;
+            _role = data['role'] as String;
+            _empID = data['id'] as String;
+          } else {
+            return Center(
+              child: Text('Employee not found'),
+            );
+          }
           return Container(
             child: SafeArea(
               child: SingleChildScrollView(

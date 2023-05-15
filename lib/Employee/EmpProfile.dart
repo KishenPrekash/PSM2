@@ -26,87 +26,59 @@ class _EmployeProfileState extends State<EmployeProfile> {
   TextEditingController lastNameController = TextEditingController();
   TextEditingController addressController = TextEditingController();
 
-  void pickUploadProfilepic() async {
-    final image = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      maxHeight: 600,
-      maxWidth: 600,
-      imageQuality: 90,
-    );
-
-    Reference ref = FirebaseStorage.instance
-        .ref()
-        .child("${Employee.employeeId.toLowerCase()}_profilepic.jpg");
-
-    await ref.putFile(File(image!.path));
-
-    ref.getDownloadURL().then((value) async {
-      setState(() {
-        Employee.profilePicLink = value;
-      });
-      await FirebaseFirestore.instance
-          .collection("Employee")
-          .doc(Employee.id)
-          .update({
-        'profilePic': value,
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.logout),
-                  onPressed: () {
-                    logout(context);
-                  },
-                ),
+            AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(width: 10),
+                  Text(
+                    'Employee Profile',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(right: 20.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      logout(context);
+                    },
+                    child: const Icon(
+                      Icons.logout,
+                      color: Colors.black,
+                      size: 26.0,
+                    ),
+                  ),
+                )
               ],
             ),
-            Align(
-              alignment: Alignment.center,
-              child: Text(
-                "Employee Profile",
-                style: const TextStyle(
-                  fontFamily: "NexaBold",
-                  fontSize: 18,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                pickUploadProfilepic();
-              },
-              child: Container(
-                margin: const EdgeInsets.only(top: 80, bottom: 24),
-                height: 120,
-                width: 120,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: primary,
-                ),
-                child: Center(
-                  child: Employee.profilePicLink == " "
-                      ? const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 80,
-                        )
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.network(Employee.profilePicLink),
-                        ),
+            Container(
+              margin: const EdgeInsets.only(top: 30, bottom: 24),
+              height: 120,
+              width: 120,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: primary,
+                image: DecorationImage(
+                  image: NetworkImage(Employee.profilePicLink),
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
@@ -121,7 +93,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
               ),
             ),
             const SizedBox(
-              height: 24,
+              height: 19,
             ),
             isEditing
                 ? textField("First Name", "First name", firstNameController)
@@ -295,7 +267,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.only(left: 11),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(3),
             border: Border.all(
               color: Colors.black54,
             ),
@@ -331,7 +303,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
           ),
         ),
         Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: 10),
           child: TextFormField(
             enabled: isEditing,
             controller: controller,

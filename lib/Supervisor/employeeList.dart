@@ -12,21 +12,15 @@ class EmployeeList extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(width: 10),
-            Text(
-              'Employee List',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+        title: Text(
+          'Employee List',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _employeeCollectionRef.snapshots(),
@@ -56,69 +50,146 @@ class EmployeeList extends StatelessWidget {
               Map<String, dynamic> empData =
                   employees[index].data() as Map<String, dynamic>;
 
-              return Card(
-                elevation: 2.0,
-                margin: EdgeInsets.symmetric(
-                  horizontal: 10.0,
-                  vertical: 5.0,
-                ),
-                child: ListTile(
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                  title: Text(
-                    empData['id'],
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    empData['role'],
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue[200],
-                    backgroundImage: empData['photo'] != null
-                        ? NetworkImage(empData['photo'])
-                        : null,
-                    child: empData['photo'] == null
-                        ? Icon(
-                            Icons.person,
-                            size: 30.0,
-                            color: Colors.white,
-                          )
-                        : null,
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(
-                      Icons.delete,
-                      color: Colors.red,
-                    ),
-                    onPressed: () async {
-                      bool shouldDelete = await showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text("Delete Employee"),
-                          content: Text(
-                              "Are you sure you want to delete this employee?"),
-                          actions: <Widget>[
-                            TextButton(
-                              child: Text("Cancel"),
-                              onPressed: () => Navigator.pop(context, false),
+              return GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return Container(
+                        height: 300.0,
+                        padding: EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 10,
+                              offset: const Offset(2, 2),
                             ),
-                            TextButton(
-                              child: Text("Delete"),
-                              onPressed: () => Navigator.pop(context, true),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    empData['firstName'] +
+                                        ' ' +
+                                        empData['lastName'],
+                                    style: TextStyle(
+                                      fontSize: 24.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blueAccent,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  empData['id'],
+                                  style: TextStyle(
+                                    fontSize: 20.0,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8.0),
+                            SizedBox(height: 16.0),
+                            Text(
+                              'Email: ${empData['email']}',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(height: 16.0),
+                            Text(
+                              'Birth Date: ${empData['birthDate']}',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(height: 16.0),
+                            Text(
+                              'Address: ${empData['address']}',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.grey[700],
+                              ),
                             ),
                           ],
                         ),
                       );
-                      if (shouldDelete == true) {
-                        await _employeeCollectionRef
-                            .doc(employees[index].id)
-                            .delete();
-                      }
                     },
+                  );
+                },
+                child: Card(
+                  elevation: 2.0,
+                  margin: EdgeInsets.symmetric(
+                    horizontal: 10.0,
+                    vertical: 5.0,
+                  ),
+                  child: ListTile(
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                    title: Text(
+                      empData['id'],
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      empData['role'],
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue[200],
+                      backgroundImage: empData['photo'] != null
+                          ? NetworkImage(empData['photo'])
+                          : null,
+                      child: empData['photo'] == null
+                          ? Icon(
+                              Icons.person,
+                              size: 30.0,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                      ),
+                      onPressed: () async {
+                        bool shouldDelete = await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text("Delete Employee"),
+                            content: Text(
+                                "Are you sure you want to delete this employee?"),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text("Cancel"),
+                                onPressed: () => Navigator.pop(context, false),
+                              ),
+                              TextButton(
+                                child: Text("Delete"),
+                                onPressed: () => Navigator.pop(context, true),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (shouldDelete == true) {
+                          await _employeeCollectionRef
+                              .doc(employees[index].id)
+                              .delete();
+                        }
+                      },
+                    ),
                   ),
                 ),
               );

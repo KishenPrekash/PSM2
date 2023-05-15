@@ -136,7 +136,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             alignment: Alignment.centerLeft,
             margin: const EdgeInsets.only(top: 32),
             child: Text(
-              "Welcome,",
+              "Welcome," + Employee.employeeId,
               style: TextStyle(
                 color: Colors.black54,
                 fontFamily: "NexaRegular",
@@ -145,16 +145,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Employee " + Employee.employeeId,
-              style: TextStyle(
-                fontFamily: "NexaBold",
-                fontSize: screenWidth / 18,
-              ),
-            ),
-          ),
           Card(
             margin: EdgeInsets.symmetric(vertical: 8.0),
             elevation: 2,
@@ -237,9 +227,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ),
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 32),
-            height: 100,
+            height: 200,
             decoration: BoxDecoration(
               color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black26,
@@ -247,7 +238,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   offset: const Offset(2, 2),
                 ),
               ],
-              borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -270,8 +260,36 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       Text(
                         checkIn,
                         style: const TextStyle(
+                          color: Colors.red,
                           fontFamily: "NexaBold",
                           fontSize: 25,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Location",
+                              style: TextStyle(
+                                fontFamily: "NexaRegular",
+                                fontSize: 16,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              checkInlocation,
+                              textAlign: TextAlign.start,
+                              style: const TextStyle(
+                                fontFamily: "NexaBold",
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -302,6 +320,34 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         style: const TextStyle(
                           fontFamily: "NexaBold",
                           fontSize: 25,
+                          color: Colors.red,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Location",
+                              style: TextStyle(
+                                fontFamily: "NexaRegular",
+                                fontSize: 16,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              checkOutlocation,
+                              textAlign: TextAlign.start,
+                              style: const TextStyle(
+                                fontFamily: "NexaBold",
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -312,21 +358,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ),
           checkOut == "--/--"
               ? Container(
-                  margin: const EdgeInsets.only(top: 24, bottom: 12),
+                  margin: const EdgeInsets.only(top: 10, bottom: 12),
                   child: Builder(
                     builder: (context) {
                       final GlobalKey<SlideActionState> key = GlobalKey();
 
                       return SlideAction(
-                        text: checkIn == "--/--"
-                            ? "Slide to Check In"
-                            : "Slide to Check Out",
+                        text: checkIn == "--/--" ? "Check In" : "Check Out",
                         textStyle: TextStyle(
                             color: Colors.black54,
                             fontSize: screenWidth / 20,
                             fontFamily: "NexaRegular"),
                         outerColor: Colors.white,
-                        innerColor: primary,
+                        innerColor: Colors.blue,
                         key: key,
                         onSubmit: () async {
                           if (Employee.lat != 0) {
@@ -703,83 +747,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     },
                   ),
                 )
-              : Container(
+              : Card(
                   margin: const EdgeInsets.only(top: 10, bottom: 32),
-                  child: Text(
-                    "You have already check in & out for today! ",
-                    style: TextStyle(
-                      fontFamily: "NexaRegular",
-                      fontSize: screenWidth / 20,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ),
-          Column(
-            children: [
-              if (checkInlocation != "")
-                Container(
-                  margin: EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(
-                      color: Colors.blue[200]!,
-                      width: 1.0,
-                    ),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Icon(Icons.check_circle_outline,
-                          color: Colors.blue[300], size: 20),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          "Check In Location: " + checkInlocation,
-                          style: TextStyle(
-                            fontFamily: "NexaRegular",
-                            fontSize: 15,
-                            color: Colors.blue[800],
-                          ),
-                        ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      "You have already checked in & out for today!",
+                      style: TextStyle(
+                        fontFamily: "NexaRegular",
+                        fontSize: screenWidth / 20,
+                        color: Colors.black54,
                       ),
-                    ],
-                  ),
-                ),
-              if (checkOutlocation != "")
-                Container(
-                  margin: EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[50],
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(
-                      color: Colors.orange[200]!,
-                      width: 1.0,
                     ),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Icon(Icons.check_circle_outline,
-                          color: Colors.orange[300], size: 20),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          "Check Out Location: " + checkOutlocation,
-                          style: TextStyle(
-                            fontFamily: "NexaRegular",
-                            fontSize: 15,
-                            color: Colors.orange[800],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-            ],
-          )
         ],
       ),
     ));

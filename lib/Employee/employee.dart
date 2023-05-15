@@ -54,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .get();
 
       setState(() {
+        Employee.profilePicLink = doc['photo'];
         Employee.canEdit = doc['canEdit'];
         Employee.firstName = doc['firstName'];
         Employee.lastName = doc['lastName'];
@@ -72,8 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
         .get();
 
     setState(() {
-      if ((doc.data()! as Map<String, dynamic>).containsKey('profilePic')) {
-        Employee.profilePicLink = doc['profilePic'];
+      if ((doc.data()! as Map<String, dynamic>).containsKey('photo')) {
+        Employee.profilePicLink = doc['photo'];
       }
     });
   }
