@@ -284,7 +284,15 @@ class _LoginPageState extends State<LoginPage> {
           email: email,
           password: password,
         );
-        route();
+
+        if (userCredential.user!.emailVerified) {
+          route();
+        } else {
+          ElegantNotification.error(
+                  title: const Text("Error"),
+                  description: const Text("Your email is not verified."))
+              .show(context);
+        }
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
           ElegantNotification.error(

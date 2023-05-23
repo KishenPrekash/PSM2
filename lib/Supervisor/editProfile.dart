@@ -83,6 +83,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       SizedBox(height: 16.0),
                       Text(
                         'Name: ${_empID}',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 20.0,
@@ -135,8 +136,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   }
                                   return null;
                                 },
-                                onSaved: (value) {
-                                  _password = value!;
+                                onChanged: (value) {
+                                  _password = value;
                                 },
                               ),
                               SizedBox(height: 16.0),
@@ -155,8 +156,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   }
                                   return null;
                                 },
-                                onSaved: (value) {
-                                  _newPassword = value!;
+                                onChanged: (value) {
+                                  _newPassword = value;
                                 },
                               ),
                               SizedBox(height: 16.0),
@@ -177,8 +178,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   }
                                   return null;
                                 },
-                                onSaved: (value) {
-                                  _confirmNewPassword = value!;
+                                onChanged: (value) {
+                                  _confirmNewPassword = value;
                                 },
                               ),
                               SizedBox(height: 32.0),
@@ -188,39 +189,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     _formKey.currentState!.save();
 
                                     // Check if old password matches with database
-                                    QuerySnapshot snapshot =
-                                        await FirebaseFirestore
-                                            .instance
+                                    DocumentSnapshot supervisorSnapshot =
+                                        await FirebaseFirestore.instance
                                             .collection('Supervisor')
-                                            .where('id', isEqualTo: widget.uid)
-                                            .where('password',
-                                                isEqualTo: _password)
+                                            .doc(widget.uid)
                                             .get();
-                                    if (snapshot.docs.length == 1) {
-                                      // Update password in database
-                                      await FirebaseFirestore.instance
-                                          .collection('supervisors')
-                                          .doc(snapshot.docs[0].id)
-                                          .update({'password': _newPassword});
 
-                                      // Show success message and clear form
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'Password updated successfully'),
-                                        ),
-                                      );
-                                      _formKey.currentState!.reset();
+                                    if (supervisorSnapshot.exists) {
+                                      // Document exists, check if password matches
+                                      Map<String, dynamic>? supervisorData =
+                                          supervisorSnapshot.data()
+                                              as Map<String, dynamic>?;
+
+                                      if (supervisorData != null) {
+                                        String storedPassword =
+                                            supervisorData['password']
+                                                as String;
+
+                                        if (_password == storedPassword) {
+                                          // Password matches, perform further operations if needed
+
+                                          // Update password in the database
+                                          await FirebaseFirestore.instance
+                                              .collection('Supervisor')
+                                              .doc(widget.uid)
+                                              .update(
+                                                  {'password': _newPassword});
+                                          User? user =
+                                              FirebaseAuth.instance.currentUser;
+                                          if (user != null) {
+                                            await user
+                                                .updatePassword(_newPassword);
+                                          }
+
+                                          // Show success message and clear the form
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Password updated successfully'),
+                                            ),
+                                          );
+                                          _formKey.currentState!.reset();
+                                        } else {
+                                          // Password does not match, display error message
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'The old password is incorrect'),
+                                            ),
+                                          );
+                                        }
+                                      } else {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text('No record found'),
+                                          ),
+                                        );
+                                      }
                                     } else {
-                                      // Show error message
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'The old password is incorrect'),
-                                        ),
-                                      );
+                                      // Document does not exist, handle error or display appropriate message
                                     }
                                   }
                                 },

@@ -2,15 +2,18 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:elegant_notification/elegant_notification.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:image_compare/image_compare.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_test_a/model/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -31,6 +34,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   String checkInlocation = " ";
   String checkOutlocation = " ";
   String checkInStatus = " ";
+  final LocalAuthentication localAuth = LocalAuthentication();
 
   Color primary = const Color(0xffeef444c);
 
@@ -80,6 +84,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         checkInStatus = "--";
       });
     }
+  }
+
+  Future<bool> authenticate() async {
+    bool authenticated = false;
+    try {
+      authenticated = await localAuth.authenticate(
+          localizedReason: 'Authenticate to check in/out',
+          options: const AuthenticationOptions(biometricOnly: true));
+    } on PlatformException catch (e) {
+      print(e);
+    }
+    return authenticated;
   }
 
   bool isEmployeeInCompanyLocation() {
@@ -549,6 +565,91 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               return; // Do not proceed with getting the location
                             }
 
+                            final pickedFile = await ImagePicker()
+                                .getImage(source: ImageSource.camera);
+                            if (pickedFile == null) {
+                              // User did not take a picture
+                              return;
+                            }
+
+                            // Verify the picture with the picture stored in Firebase
+                            final storageRef = FirebaseStorage.instance
+                                .ref()
+                                .child('employee_photos/${Employee.id}');
+                            final downloadUrl =
+                                await storageRef.getDownloadURL();
+                            final pic1 = await http.get(Uri.parse(downloadUrl));
+                            final bytes1 = pic1.bodyBytes;
+                            final pic2 = await pickedFile.readAsBytes();
+
+                            final result = await compareImages(
+                              src1: bytes1,
+                              src2: pic2,
+                              algorithm: PixelMatching(),
+                            );
+                            print(result);
+                            if (result < 0.9) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Cannot slide in"),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "The picture you took does not match the picture we have on file.",
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                          ),
+                                        ),
+                                        SizedBox(height: 10.0),
+                                        TextButton(
+                                          child: Text(
+                                            "OK",
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                              Colors.blue,
+                                            ),
+                                            padding: MaterialStateProperty.all(
+                                              EdgeInsets.symmetric(
+                                                horizontal: 20.0,
+                                                vertical: 10.0,
+                                              ),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                    backgroundColor: Colors.white,
+                                    elevation: 5.0,
+                                    contentPadding: EdgeInsets.all(20.0),
+                                  );
+                                },
+                              );
+                              return; // Do not proceed with check-in
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Successfully Recorded"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+
                             final snap = await FirebaseFirestore.instance
                                 .collection("Employee")
                                 .where('id', isEqualTo: Employee.employeeId)
@@ -586,6 +687,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 setState(() {
                                   checkInStatus = 'Late';
                                 });
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) =>
+                                      AlertDialog(
+                                    title: Text("Late Check-In"),
+                                    content: Text("You have checked in late"),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text("OK"),
+                                      ),
+                                    ],
+                                  ),
+                                );
                               }
 
                               await FirebaseFirestore.instance
@@ -767,6 +882,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 }
 
+
+
   // final pickedFile = await ImagePicker()
   //                               .getImage(source: ImageSource.camera);
   //                           if (pickedFile == null) {
@@ -850,3 +967,109 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   //                               ),
   //                             );
   //                           }
+
+  // final List<BiometricType> availableBiometrics =
+  //                               await localAuth.getAvailableBiometrics();
+  //                           print(availableBiometrics);
+
+  //                           bool isAuthenticated = await localAuth.authenticate(
+  //                               localizedReason: 'Authenticate to proceed',
+  //                               options: const AuthenticationOptions(
+  //                                   stickyAuth: true));
+
+  //                           if (!isAuthenticated) {
+  //                             // Authentication failed, show an error message
+  //                             showDialog(
+  //                               context: context,
+  //                               builder: (BuildContext context) {
+  //                                 return AlertDialog(
+  //                                   title: Text("Authentication Failed"),
+  //                                   content: Column(
+  //                                     mainAxisSize: MainAxisSize.min,
+  //                                     children: [
+  //                                       Text(
+  //                                         "You are not authenticated. Please try again.",
+  //                                         style: TextStyle(
+  //                                           fontSize: 16.0,
+  //                                         ),
+  //                                       ),
+  //                                       SizedBox(height: 10.0),
+  //                                       TextButton(
+  //                                         child: Text(
+  //                                           "OK",
+  //                                           style: TextStyle(
+  //                                             fontSize: 16.0,
+  //                                             fontWeight: FontWeight.bold,
+  //                                             color: Colors.white,
+  //                                           ),
+  //                                         ),
+  //                                         style: ButtonStyle(
+  //                                           backgroundColor:
+  //                                               MaterialStateProperty.all(
+  //                                                   Colors.blue),
+  //                                           padding: MaterialStateProperty.all(
+  //                                             EdgeInsets.symmetric(
+  //                                               horizontal: 20.0,
+  //                                               vertical: 10.0,
+  //                                             ),
+  //                                           ),
+  //                                         ),
+  //                                         onPressed: () {
+  //                                           Navigator.of(context).pop();
+  //                                         },
+  //                                       ),
+  //                                     ],
+  //                                   ),
+  //                                   shape: RoundedRectangleBorder(
+  //                                     borderRadius: BorderRadius.circular(20.0),
+  //                                   ),
+  //                                   backgroundColor: Colors.white,
+  //                                   elevation: 5.0,
+  //                                   contentPadding: EdgeInsets.all(20.0),
+  //                                 );
+  //                               },
+  //                             );
+  //                             return; // Do not proceed with check-in
+  //                           }
+
+
+
+// final pickedFile = await ImagePicker().getImage(source: ImageSource.camera);
+// if (pickedFile == null) {
+//   // User did not take a picture
+//   return;
+// }
+
+// // Verify the picture with the picture stored in Firebase
+// final storageRef = FirebaseStorage.instance.ref().child('employee_photos/${Employee.id}');
+// final downloadUrl = await storageRef.getDownloadURL();
+// final pic1 = await http.get(Uri.parse(downloadUrl));
+// final bytes1 = pic1.bodyBytes;
+// final pic2 = await pickedFile.readAsBytes();
+
+// // Load the face detector
+// final faceDetector = GoogleMlKit.vision.faceDetector();
+
+// // Detect faces in the first image
+// final inputImage1 = InputImage.fromBytes(bytes1, inputImageData: InputImageData(imageRotation: 0));
+// final faces1 = await faceDetector.processImage(inputImage1);
+
+// // Load the face detector
+// final inputImage2 = InputImage.fromBytes(pic2, inputImageData: InputImageData(imageRotation: 0));
+// final faces2 = await faceDetector.processImage(inputImage2);
+
+// // Compare the number of detected faces
+// if (faces1.isNotEmpty && faces2.isNotEmpty) {
+//   // Compare the faces using your chosen comparison algorithm (e.g., PixelMatching)
+//   final result = await compareImages(
+//     src1: bytes1,
+//     src2: pic2,
+//     algorithm: PixelMatching(),
+//   );
+//   print('Face similarity:', result);
+// } else {
+//   print('No faces detected in one or both images.');
+// }
+
+// // Dispose of the face detector
+// faceDetector.close();

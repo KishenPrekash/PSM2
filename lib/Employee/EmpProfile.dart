@@ -102,7 +102,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
                 ? textField("Last Name", "Last name", lastNameController)
                 : field("Last Name", Employee.lastName),
             const Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.center,
               child: Text(
                 "Date of Birth",
                 style: TextStyle(
@@ -153,7 +153,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
               },
               child: Container(
                 height: kToolbarHeight,
-                width: screenWidth,
+                width: 356,
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.only(left: 11),
                 decoration: BoxDecoration(
@@ -224,7 +224,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
               },
               child: Container(
                 height: kToolbarHeight,
-                width: screenWidth,
+                width: 250,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
@@ -252,7 +252,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
     return Column(
       children: [
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: Alignment.center,
           child: Text(
             title,
             style: const TextStyle(
@@ -263,7 +263,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
         ),
         Container(
           height: kToolbarHeight,
-          width: screenWidth,
+          width: 356,
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.only(left: 11),
           decoration: BoxDecoration(

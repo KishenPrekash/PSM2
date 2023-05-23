@@ -204,9 +204,9 @@ class _PayslipScreenState extends State<PayslipScreen> {
     // Calculate earnings
     double regularHours = totalWorkingHours / 60;
     double overtimeHours = 0;
-    double totalEarnings = regularHours * 25;
+    double totalEarnings = regularHours * 8;
     String earningsDescription =
-        '- Regular Hours (${regularHours.toStringAsFixed(1)} x 25/hour): \$${totalEarnings.toStringAsFixed(2)}';
+        '- Regular Hours (${regularHours.toStringAsFixed(1)} x 8/hour): \$${totalEarnings.toStringAsFixed(2)}';
 
     // Create the Excel workbook and worksheet
     final workbook = Excel.createExcel();
