@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:elegant_notification/elegant_notification.dart';
@@ -137,6 +138,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   double _toRadians(double degree) {
     return degree * (math.pi / 180);
+  }
+
+  Future<bool> compareFaces(List<int> src1, List<int> src2) async {
+    final response = await http.post(
+      Uri.parse('http://127.0.0.1:5000/'),
+      body: {
+        'src1': base64Encode(src1),
+        'src2': base64Encode(src2),
+      },
+    );
+
+    return response.body.trim() == 'True';
   }
 
   Widget build(BuildContext context) {
@@ -572,7 +585,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               return;
                             }
 
-                            // Verify the picture with the picture stored in Firebase
+// Verify the picture with the picture stored in Firebase
                             final storageRef = FirebaseStorage.instance
                                 .ref()
                                 .child('employee_photos/${Employee.id}');
@@ -582,13 +595,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             final bytes1 = pic1.bodyBytes;
                             final pic2 = await pickedFile.readAsBytes();
 
-                            final result = await compareImages(
-                              src1: bytes1,
-                              src2: pic2,
-                              algorithm: PixelMatching(),
-                            );
+                            final result = await compareFaces(bytes1, pic2);
                             print(result);
-                            if (result < 0.9) {
+                            if (result == 'False') {
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
