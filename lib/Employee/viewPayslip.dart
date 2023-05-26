@@ -276,13 +276,41 @@ class _PayslipScreenState extends State<PayslipScreen> {
 
       File file = File(filePath);
       if (await file.exists()) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Payslip downloaded to $filePath'),
-        ));
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Success'),
+              content: Text('Payslip downloaded to $filePath'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error'),
-        ));
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('An error occurred while downloading the payslip.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
       }
     }
   }

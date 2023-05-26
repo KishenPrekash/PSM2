@@ -6,6 +6,7 @@ import 'package:elegant_notification/elegant_notification.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:image_compare/image_compare.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image/image.dart' as img;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -140,17 +141,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return degree * (math.pi / 180);
   }
 
-  Future<bool> compareFaces(List<int> src1, List<int> src2) async {
-    final response = await http.post(
-      Uri.parse('http://127.0.0.1:5000/'),
-      body: {
-        'src1': base64Encode(src1),
-        'src2': base64Encode(src2),
-      },
-    );
+  // Future<bool> compareFaces(List<int> src1, List<int> src2) async {
+  //   final response = await http.post(
+  //     Uri.parse('http://127.0.0.1:5000/'),
+  //     body: {
+  //       'src1': base64Encode(src1),
+  //       'src2': base64Encode(src2),
+  //     },
+  //   );
 
-    return response.body.trim() == 'True';
-  }
+  //   return response.body.trim() == 'True';
+  // }
 
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
@@ -578,85 +579,45 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               return; // Do not proceed with getting the location
                             }
 
-                            final pickedFile = await ImagePicker()
-                                .getImage(source: ImageSource.camera);
-                            if (pickedFile == null) {
-                              // User did not take a picture
-                              return;
-                            }
+                            final LocalAuthentication localAuth =
+                                LocalAuthentication();
+                            bool canCheckBiometrics =
+                                await localAuth.canCheckBiometrics;
 
-// Verify the picture with the picture stored in Firebase
-                            final storageRef = FirebaseStorage.instance
-                                .ref()
-                                .child('employee_photos/${Employee.id}');
-                            final downloadUrl =
-                                await storageRef.getDownloadURL();
-                            final pic1 = await http.get(Uri.parse(downloadUrl));
-                            final bytes1 = pic1.bodyBytes;
-                            final pic2 = await pickedFile.readAsBytes();
+                            if (canCheckBiometrics) {
+                              bool isFingerprintAuthSuccessful =
+                                  await localAuth.authenticate(
+                                      localizedReason:
+                                          'Please authenticate to proceed',
+                                      options: const AuthenticationOptions(
+                                          biometricOnly: true));
 
-                            final result = await compareFaces(bytes1, pic2);
-                            print(result);
-                            if (result == 'False') {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text("Cannot slide in"),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          "The picture you took does not match the picture we have on file.",
-                                          style: TextStyle(
-                                            fontSize: 16.0,
-                                          ),
-                                        ),
-                                        SizedBox(height: 10.0),
-                                        TextButton(
-                                          child: Text(
-                                            "OK",
-                                            style: TextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          style: ButtonStyle(
-                                            backgroundColor:
-                                                MaterialStateProperty.all(
-                                              Colors.blue,
-                                            ),
-                                            padding: MaterialStateProperty.all(
-                                              EdgeInsets.symmetric(
-                                                horizontal: 20.0,
-                                                vertical: 10.0,
-                                              ),
-                                            ),
-                                          ),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                    backgroundColor: Colors.white,
-                                    elevation: 5.0,
-                                    contentPadding: EdgeInsets.all(20.0),
-                                  );
-                                },
-                              );
-                              return; // Do not proceed with check-in
-                            } else {
+                              if (!isFingerprintAuthSuccessful) {
+                                // Fingerprint authentication successful
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        'Fingerprint authentication failed'),
+                                  ),
+                                );
+                                return;
+                              } else {
+                                // Fingerprint authentication failed
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        'Fingerprint authentication successful'),
+                                  ),
+                                );
+                              }
+                            }else{
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Successfully Recorded"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                                  SnackBar(
+                                    content: Text(
+                                        'Authentication Error'),
+                                  ),
+                                );
+                                return;
                             }
 
                             final snap = await FirebaseFirestore.instance
