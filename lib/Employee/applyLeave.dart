@@ -85,14 +85,14 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          title: Text('Error'),
-          content: Text('Failed to submit leave request.'),
+          title: const Text('Error'),
+          content: const Text('Failed to submit leave request.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -108,7 +108,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Leave Type',
                 style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
@@ -126,8 +126,8 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                   );
                 }).toList(),
               ),
-              SizedBox(height: 20.0),
-              Text(
+              const SizedBox(height: 20.0),
+              const Text(
                 'Start Date',
                 style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
@@ -138,12 +138,12 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(primary: primary),
                     onPressed: () => _selectStartDate(context),
-                    child: Text('Select'),
+                    child: const Text('Select'),
                   ),
                 ],
               ),
-              SizedBox(height: 20.0),
-              Text(
+              const SizedBox(height: 20.0),
+              const Text(
                 'End Date',
                 style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
@@ -154,7 +154,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(primary: primary),
                     onPressed: () => _selectEndDate(context),
-                    child: Text('Select'),
+                    child: const Text('Select'),
                   ),
                 ],
               ),

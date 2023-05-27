@@ -263,6 +263,7 @@ class _LoginPageState extends State<LoginPage> {
         if (employeeSnapshot.exists) {
           Employee.employeeId = employeeSnapshot.get('id');
 
+          // ignore: use_build_context_synchronously
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -270,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
         } else {
-          print('Document does not exist on the database');
+          return ('Document does not exist on the database');
         }
       }
     });
@@ -288,6 +289,7 @@ class _LoginPageState extends State<LoginPage> {
         if (userCredential.user!.emailVerified) {
           route();
         } else {
+          // ignore: use_build_context_synchronously
           ElegantNotification.error(
                   title: const Text("Error"),
                   description: const Text("Your email is not verified."))

@@ -30,10 +30,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 description: const Text("Your email has been verified"))
             .show(context);
         timer.cancel();
+        // ignore: use_build_context_synchronously
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => LoginPage(),
+            builder: (context) => const LoginPage(),
           ),
         );
       }

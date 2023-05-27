@@ -47,13 +47,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   void _getLocation() async {
-    // Get the location
     List<Placemark> placemark =
         await placemarkFromCoordinates(Employee.lat, Employee.long);
     setState(() {
       location =
           "${placemark[0].street},${placemark[0].administrativeArea},${placemark[0].postalCode},${placemark[0].country}";
     });
+  }
+
+  bool isEmployeeInCompanyLocation() {
+    double companyLat = 1.55636628;
+    double companyLng = 103.648055;
+    double employeeLat = Employee.lat;
+    double employeeLng = Employee.long;
+
+    double distance =
+        calculateDistance(employeeLat, employeeLng, companyLat, companyLng);
+
+    double thresholdDistance = 1000;
+
+    return distance <= thresholdDistance;
   }
 
   void _getRecord() async {
@@ -98,26 +111,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       print(e);
     }
     return authenticated;
-  }
-
-  bool isEmployeeInCompanyLocation() {
-    // Replace companyLat and companyLng with the latitude and longitude of the company's location
-    double companyLat = 1.55636628;
-    double companyLng = 103.648055;
-
-    // Replace employeeLat and employeeLng with the latitude and longitude of the employee's current location
-    double employeeLat = Employee.lat;
-    double employeeLng = Employee.long;
-
-    // Calculate the distance between the employee's location and the company's location
-    double distance =
-        calculateDistance(employeeLat, employeeLng, companyLat, companyLng);
-
-    // Set a threshold distance within which the employee is considered to be in the company's location
-    double thresholdDistance = 1000; // Adjust the threshold distance as needed
-
-    // Check if the distance is within the threshold distance
-    return distance <= thresholdDistance;
   }
 
   double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
@@ -415,13 +408,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     content: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(
+                                        const Text(
                                           "You are not in the company's location.",
                                           style: TextStyle(
                                             fontSize: 16.0,
                                           ),
                                         ),
-                                        SizedBox(height: 10.0),
+                                        const SizedBox(height: 10.0),
                                         TextButton(
                                           child: Text(
                                             "OK",
@@ -436,7 +429,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                                 MaterialStateProperty.all(
                                                     Colors.blue),
                                             padding: MaterialStateProperty.all(
-                                              EdgeInsets.symmetric(
+                                              const EdgeInsets.symmetric(
                                                 horizontal: 20.0,
                                                 vertical: 10.0,
                                               ),
@@ -453,7 +446,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     ),
                                     backgroundColor: Colors.white,
                                     elevation: 5.0,
-                                    contentPadding: EdgeInsets.all(20.0),
+                                    contentPadding: const EdgeInsets.all(20.0),
                                   );
                                 },
                               );
@@ -464,8 +457,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 checkOut == null) {
                               // Employee is late
                               ElegantNotification.error(
-                                title: Text("Late"),
-                                description: Text("You have checked in late"),
+                                title: const Text("Late"),
+                                description:
+                                    const Text("You have checked in late"),
                               ).show(context);
                               setState(() {
                                 checkInStatus = 'Late';
@@ -480,15 +474,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     content: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(
+                                        const Text(
                                           "You cannot slide in after 5pm",
                                           style: TextStyle(
                                             fontSize: 16.0,
                                           ),
                                         ),
-                                        SizedBox(height: 10.0),
+                                        const SizedBox(height: 10.0),
                                         TextButton(
-                                          child: Text(
+                                          child: const Text(
                                             "OK",
                                             style: TextStyle(
                                               fontSize: 16.0,
@@ -501,7 +495,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                                 MaterialStateProperty.all(
                                                     Colors.blue),
                                             padding: MaterialStateProperty.all(
-                                              EdgeInsets.symmetric(
+                                              const EdgeInsets.symmetric(
                                                 horizontal: 20.0,
                                                 vertical: 10.0,
                                               ),
@@ -579,45 +573,88 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               return; // Do not proceed with getting the location
                             }
 
-                            final LocalAuthentication localAuth =
-                                LocalAuthentication();
-                            bool canCheckBiometrics =
-                                await localAuth.canCheckBiometrics;
+                            final pickedFile = await ImagePicker()
+                                .getImage(source: ImageSource.camera);
+                            if (pickedFile == null) {
+                              // User did not take a picture
+                              return;
+                            }
 
-                            if (canCheckBiometrics) {
-                              bool isFingerprintAuthSuccessful =
-                                  await localAuth.authenticate(
-                                      localizedReason:
-                                          'Please authenticate to proceed',
-                                      options: const AuthenticationOptions(
-                                          biometricOnly: true));
+                            // Verify the picture with the picture stored in Firebase
+                            final storageRef = FirebaseStorage.instance
+                                .ref()
+                                .child('employee_photos/${Employee.id}');
+                            final downloadUrl =
+                                await storageRef.getDownloadURL();
+                            final pic1 = await http.get(Uri.parse(downloadUrl));
+                            final bytes1 = pic1.bodyBytes;
+                            final pic2 = await pickedFile.readAsBytes();
 
-                              if (!isFingerprintAuthSuccessful) {
-                                // Fingerprint authentication successful
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Fingerprint authentication failed'),
-                                  ),
-                                );
-                                return;
-                              } else {
-                                // Fingerprint authentication failed
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Fingerprint authentication successful'),
-                                  ),
-                                );
-                              }
-                            }else{
+                            final result = await compareImages(
+                                src1: bytes1,
+                                src2: pic2,
+                                algorithm: ChiSquareDistanceHistogram());
+
+                            if (result < 0.9) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Cannot slide in"),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "The picture you took does not match the picture we have on file.",
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                          ),
+                                        ),
+                                        SizedBox(height: 10.0),
+                                        TextButton(
+                                          child: Text(
+                                            "OK",
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                              Colors.blue,
+                                            ),
+                                            padding: MaterialStateProperty.all(
+                                              EdgeInsets.symmetric(
+                                                horizontal: 20.0,
+                                                vertical: 10.0,
+                                              ),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                    backgroundColor: Colors.white,
+                                    elevation: 5.0,
+                                    contentPadding: EdgeInsets.all(20.0),
+                                  );
+                                },
+                              );
+                              return; // Do not proceed with check-in
+                            } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Authentication Error'),
-                                  ),
-                                );
-                                return;
+                                SnackBar(
+                                  content: Text("Successfully Recorded"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
                             }
 
                             final snap = await FirebaseFirestore.instance
@@ -852,6 +889,48 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 }
 
+  // final LocalAuthentication localAuth =
+  //                               LocalAuthentication();
+  //                           bool canCheckBiometrics =
+  //                               await localAuth.canCheckBiometrics;
+
+  //                           if (canCheckBiometrics) {
+  //                             bool isFingerprintAuthSuccessful =
+  //                                 await localAuth.authenticate(
+  //                                     localizedReason:
+  //                                         'Please authenticate to proceed',
+  //                                     options: const AuthenticationOptions(
+  //                                         biometricOnly: true));
+
+  //                             if (!isFingerprintAuthSuccessful) {
+  //                               // Fingerprint authentication successful
+  //                               // ignore: use_build_context_synchronously
+  //                               ScaffoldMessenger.of(context).showSnackBar(
+  //                                 const SnackBar(
+  //                                   content: Text(
+  //                                       'Fingerprint authentication failed'),
+  //                                 ),
+  //                               );
+  //                               return;
+  //                             } else {
+  //                               // Fingerprint authentication failed
+  //                               // ignore: use_build_context_synchronously
+  //                               ScaffoldMessenger.of(context).showSnackBar(
+  //                                 const SnackBar(
+  //                                   content: Text(
+  //                                       'Fingerprint authentication successful'),
+  //                                 ),
+  //                               );
+  //                             }
+  //                           } else {
+  //                             // ignore: use_build_context_synchronously
+  //                             ScaffoldMessenger.of(context).showSnackBar(
+  //                               const SnackBar(
+  //                                 content: Text('Authentication Error'),
+  //                               ),
+  //                             );
+  //                             return;
+  //                           }
 
 
   // final pickedFile = await ImagePicker()

@@ -56,7 +56,7 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
-                    return Card(
+                    return const Card(
                       child: ListTile(
                         title: Text('Loading...'),
                       ),
@@ -69,7 +69,7 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                   return Container(
                     child: ListView.builder(
                       shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       itemCount: leaveRequests.length,
                       itemBuilder: (context, index) {
                         Map<String, dynamic> empData =
@@ -99,40 +99,40 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                               children: [
                                 Text(
                                   'Request By: $name',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 16.0,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                SizedBox(height: 8.0),
+                                const SizedBox(height: 8.0),
                                 Text(
                                   'Leave Type: $leaveType',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 14.0,
                                   ),
                                 ),
-                                SizedBox(height: 8.0),
+                                const SizedBox(height: 8.0),
                                 Text(
                                   'Start Date: $formattedStartDate',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 14.0,
                                   ),
                                 ),
-                                SizedBox(height: 8.0),
+                                const SizedBox(height: 8.0),
                                 Text(
                                   'End Date: $formattedEndDate',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 14.0,
                                   ),
                                 ),
-                                SizedBox(height: 8.0),
+                                const SizedBox(height: 8.0),
                                 Text(
                                   'Reason: $reason',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 14.0,
                                   ),
                                 ),
-                                SizedBox(height: 16.0),
+                                const SizedBox(height: 16.0),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
