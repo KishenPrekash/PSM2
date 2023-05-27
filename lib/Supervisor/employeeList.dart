@@ -16,7 +16,7 @@ class EmployeeList extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Employee List',
           style: TextStyle(
             color: Colors.black,
@@ -39,7 +39,7 @@ class EmployeeList extends StatelessWidget {
           }
 
           if (!snapshot.hasData) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
               ),
@@ -61,15 +61,15 @@ class EmployeeList extends StatelessWidget {
                     builder: (context) {
                       return Container(
                         height: 300.0,
-                        padding: EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(16.0),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10.0),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Colors.black26,
                               blurRadius: 10,
-                              offset: const Offset(2, 2),
+                              offset: Offset(2, 2),
                             ),
                           ],
                         ),
@@ -83,7 +83,7 @@ class EmployeeList extends StatelessWidget {
                                     empData['firstName'] +
                                         ' ' +
                                         empData['lastName'],
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 24.0,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blueAccent,
@@ -99,8 +99,8 @@ class EmployeeList extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 8.0),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 8.0),
+                            const SizedBox(height: 16.0),
                             Text(
                               'Email: ${empData['email']}',
                               style: TextStyle(
@@ -108,7 +108,7 @@ class EmployeeList extends StatelessWidget {
                                 color: Colors.grey[700],
                               ),
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             Text(
                               'Birth Date: ${empData['birthDate']}',
                               style: TextStyle(
@@ -116,7 +116,7 @@ class EmployeeList extends StatelessWidget {
                                 color: Colors.grey[700],
                               ),
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             Text(
                               'Address: ${empData['address']}',
                               style: TextStyle(
@@ -132,23 +132,23 @@ class EmployeeList extends StatelessWidget {
                 },
                 child: Card(
                   elevation: 2.0,
-                  margin: EdgeInsets.symmetric(
+                  margin: const EdgeInsets.symmetric(
                     horizontal: 10.0,
                     vertical: 5.0,
                   ),
                   child: ListTile(
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 10.0),
                     title: Text(
                       empData['id'],
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     subtitle: Text(
                       empData['role'],
-                      style: TextStyle(fontSize: 16.0),
+                      style: const TextStyle(fontSize: 16.0),
                     ),
                     leading: CircleAvatar(
                       backgroundColor: Colors.blue[200],
@@ -156,7 +156,7 @@ class EmployeeList extends StatelessWidget {
                           ? NetworkImage(empData['photo'])
                           : null,
                       child: empData['photo'] == null
-                          ? Icon(
+                          ? const Icon(
                               Icons.person,
                               size: 30.0,
                               color: Colors.white,
@@ -164,7 +164,7 @@ class EmployeeList extends StatelessWidget {
                           : null,
                     ),
                     trailing: IconButton(
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.delete,
                         color: Colors.red,
                       ),
@@ -172,16 +172,16 @@ class EmployeeList extends StatelessWidget {
                         bool shouldDelete = await showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: Text("Delete Employee"),
-                            content: Text(
+                            title: const Text("Delete Employee"),
+                            content: const Text(
                                 "Are you sure you want to delete this employee?"),
                             actions: <Widget>[
                               TextButton(
-                                child: Text("Cancel"),
+                                child: const Text("Cancel"),
                                 onPressed: () => Navigator.pop(context, false),
                               ),
                               TextButton(
-                                child: Text("Delete"),
+                                child: const Text("Delete"),
                                 onPressed: () => Navigator.pop(context, true),
                               ),
                             ],

@@ -24,7 +24,7 @@ class _LeaveStatusScreenState extends State<LeaveStatusScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+          children: const [
             SizedBox(width: 10),
             Text(
               'Leave Status',
@@ -66,13 +66,13 @@ class _LeaveStatusScreenState extends State<LeaveStatusScreen> {
           }
 
           if (!snapshot.hasData) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
           if (snapshot.data!.docs.isEmpty) {
-            return Center(
+            return const Center(
               child: Text('No leave requests found.'),
             );
           }
