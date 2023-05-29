@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:elegant_notification/elegant_notification.dart';
+import 'package:cool_alert/cool_alert.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:image_compare/image_compare.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,6 +17,7 @@ import 'package:flutter_test_a/model/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 import 'package:geocoding/geocoding.dart';
@@ -133,18 +136,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   double _toRadians(double degree) {
     return degree * (math.pi / 180);
   }
-
-  // Future<bool> compareFaces(List<int> src1, List<int> src2) async {
-  //   final response = await http.post(
-  //     Uri.parse('http://127.0.0.1:5000/'),
-  //     body: {
-  //       'src1': base64Encode(src1),
-  //       'src2': base64Encode(src2),
-  //     },
-  //   );
-
-  //   return response.body.trim() == 'True';
-  // }
 
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
@@ -399,6 +390,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           if (Employee.lat != 0) {
                             _getLocation();
                             final now = DateTime.now();
+                            final slideInTime =
+                                DateTime(now.year, now.month, now.day, 7, 30);
                             if (!isEmployeeInCompanyLocation()) {
                               showDialog(
                                 context: context,
@@ -452,20 +445,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               );
                               return; // Do not proceed with check-in
                             }
-                            if (now.hour >= 8 &&
-                                now.minute > 0 &&
-                                checkOut == null) {
-                              // Employee is late
-                              ElegantNotification.error(
-                                title: const Text("Late"),
-                                description:
-                                    const Text("You have checked in late"),
-                              ).show(context);
-                              setState(() {
-                                checkInStatus = 'Late';
-                              });
-                            }
-                            if (now.hour >= 17 && checkOut == null) {
+                            // if (now.hour >= 8 &&
+                            //     now.minute > 0 &&
+                            //     checkOut == "--/--") {
+                            //   // Employee is late
+                            //   ElegantNotification.error(
+                            //     title: const Text("Late"),
+                            //     description:
+                            //         const Text("You have checked in late"),
+                            //   ).show(context);
+                            //   setState(() {
+                            //     checkInStatus = 'Late';
+                            //   });
+                            // }
+                            if (now.hour >= 17 && checkOut == Null) {
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
@@ -571,31 +564,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 },
                               );
                               return; // Do not proceed with getting the location
-                            }
-
-                            final pickedFile = await ImagePicker()
-                                .getImage(source: ImageSource.camera);
-                            if (pickedFile == null) {
-                              // User did not take a picture
-                              return;
-                            }
-
-                            // Verify the picture with the picture stored in Firebase
-                            final storageRef = FirebaseStorage.instance
-                                .ref()
-                                .child('employee_photos/${Employee.id}');
-                            final downloadUrl =
-                                await storageRef.getDownloadURL();
-                            final pic1 = await http.get(Uri.parse(downloadUrl));
-                            final bytes1 = pic1.bodyBytes;
-                            final pic2 = await pickedFile.readAsBytes();
-
-                            final result = await compareImages(
-                                src1: bytes1,
-                                src2: pic2,
-                                algorithm: ChiSquareDistanceHistogram());
-
-                            if (result < 0.9) {
+                            } else if (now.isBefore(slideInTime)) {
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
@@ -604,15 +573,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     content: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(
-                                          "The picture you took does not match the picture we have on file.",
+                                        const Text(
+                                          "You cannot slide in before 7:30 AM",
                                           style: TextStyle(
                                             fontSize: 16.0,
                                           ),
                                         ),
-                                        SizedBox(height: 10.0),
+                                        const SizedBox(height: 10.0),
                                         TextButton(
-                                          child: Text(
+                                          child: const Text(
                                             "OK",
                                             style: TextStyle(
                                               fontSize: 16.0,
@@ -623,10 +592,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                           style: ButtonStyle(
                                             backgroundColor:
                                                 MaterialStateProperty.all(
-                                              Colors.blue,
-                                            ),
+                                                    Colors.blue),
                                             padding: MaterialStateProperty.all(
-                                              EdgeInsets.symmetric(
+                                              const EdgeInsets.symmetric(
                                                 horizontal: 20.0,
                                                 vertical: 10.0,
                                               ),
@@ -648,14 +616,140 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 },
                               );
                               return; // Do not proceed with check-in
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Successfully Recorded"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
                             }
+
+                            final pickedFile = await ImagePicker()
+                                .getImage(source: ImageSource.camera);
+                            if (pickedFile == null) {
+                              // User did not take a picture
+                              return;
+                            }
+                            final inputImage =
+                                InputImage.fromFilePath(pickedFile.path);
+
+                            final options = FaceDetectorOptions();
+                            final faceDetector = FaceDetector(options: options);
+                            final List<Face> faces =
+                                await faceDetector.processImage(inputImage);
+                            if (faces.isEmpty) {
+                              // ignore: use_build_context_synchronously
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text("No Face Detected"),
+                                    content: const Text(
+                                        "Please make sure your face is visible in the picture."),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text("OK"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                              return;
+                            } else {
+                              // ignore: use_build_context_synchronously
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text("Face Detected"),
+                                    content: const Text(
+                                        "Successfully Face Detected"),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text("OK"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              final storageRef = FirebaseStorage.instance
+                                  .ref()
+                                  .child('employee_photos/${Employee.id}');
+                              final photoUrl =
+                                  await storageRef.getDownloadURL();
+                              final inputImage =
+                                  InputImage.fromFilePath(photoUrl);
+
+                              final referencePhotoData =
+                                  await NetworkAssetBundle(Uri.parse(photoUrl))
+                                      .load('');
+                              final referencePhotoBytes =
+                                  referencePhotoData.buffer.asUint8List();
+
+                              final result =
+                                  await photoUrl.compareTo(pickedFile.path);
+
+                              if (result == 1) {
+                                // ignore: use_build_context_synchronously
+                                CoolAlert.show(
+                                  context: context,
+                                  type: CoolAlertType.success,
+                                  text: "Face recognition successful!",
+                                );
+                              } else {
+                                // ignore: use_build_context_synchronously
+                                CoolAlert.show(
+                                  context: context,
+                                  type: CoolAlertType.error,
+                                  text: "Face not matched!",
+                                );
+                                return;
+                              }
+                            }
+
+                            // final LocalAuthentication localAuth =
+                            //     LocalAuthentication();
+                            // bool canCheckBiometrics =
+                            //     await localAuth.canCheckBiometrics;
+
+                            // if (canCheckBiometrics) {
+                            //   bool isFingerprintAuthSuccessful =
+                            //       await localAuth.authenticate(
+                            //           localizedReason:
+                            //               'Please authenticate to proceed',
+                            //           options: const AuthenticationOptions(
+                            //               biometricOnly: true));
+
+                            //   if (!isFingerprintAuthSuccessful) {
+                            //     // Fingerprint authentication successful
+                            //     // ignore: use_build_context_synchronously
+                            //     ScaffoldMessenger.of(context).showSnackBar(
+                            //       const SnackBar(
+                            //         content: Text(
+                            //             'Fingerprint authentication failed'),
+                            //       ),
+                            //     );
+                            //     return;
+                            //   } else {
+                            //     // Fingerprint authentication failed
+                            //     // ignore: use_build_context_synchronously
+                            //     ScaffoldMessenger.of(context).showSnackBar(
+                            //       const SnackBar(
+                            //         content: Text(
+                            //             'Fingerprint authentication successful'),
+                            //       ),
+                            //     );
+                            //   }
+                            // } else {
+                            //   // ignore: use_build_context_synchronously
+                            //   ScaffoldMessenger.of(context).showSnackBar(
+                            //     const SnackBar(
+                            //       content: Text('Authentication Error'),
+                            //     ),
+                            //   );
+                            //   return;
+                            // }
 
                             final snap = await FirebaseFirestore.instance
                                 .collection("Employee")
@@ -694,20 +788,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 setState(() {
                                   checkInStatus = 'Late';
                                 });
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) =>
-                                      AlertDialog(
-                                    title: Text("Late Check-In"),
-                                    content: Text("You have checked in late"),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text("OK"),
-                                      ),
-                                    ],
-                                  ),
-                                );
                               }
 
                               await FirebaseFirestore.instance
@@ -744,6 +824,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 setState(() {
                                   checkInStatus = 'Late';
                                 });
+
+                                // ignore: use_build_context_synchronously
+                                ElegantNotification.error(
+                                        title: const Text("Late Check-In"),
+                                        description: const Text(
+                                            "You have checked in late"))
+                                    .show(context);
                               }
                               await FirebaseFirestore.instance
                                   .collection("Employee")

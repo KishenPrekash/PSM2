@@ -152,7 +152,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         String checkOutTime = record?['checkOut'] ?? '';
 
                         Color containerColor;
-                        if (checkInTime.compareTo('08:00 AM') > 0) {
+                        if (checkInTime.compareTo('07:30 AM') > 0) {
                           // employee is absent
                           containerColor = Colors.red;
                         } else if (checkInTime.isEmpty ||

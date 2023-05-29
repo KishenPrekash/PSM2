@@ -63,6 +63,10 @@ dependencies:
   flutter_excel: ^1.0.1
   permission_handler: ^10.2.0
   local_auth: ^2.1.6
+  opencv_4: ^1.0.0
+  google_mlkit_face_detection: ^0.6.0
+  cool_alert: ^2.0.1
+
   
 
 

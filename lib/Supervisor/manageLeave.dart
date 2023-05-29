@@ -1,5 +1,7 @@
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_test_a/model/user.dart';
 import 'package:intl/intl.dart';
 import 'package:mailer/mailer.dart';
 
@@ -11,6 +13,140 @@ class ManageLeaveScreen extends StatefulWidget {
 }
 
 class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
+  void addToHistoryCollection(
+      String supervisorId, Map<String, dynamic> leaveRequestData) {
+    // Assuming you have a "supervisorId" variable available
+    FirebaseFirestore.instance
+        .collection('Supervisor')
+        .doc(supervisorId)
+        .collection('history')
+        .add(leaveRequestData)
+        .then((value) {
+      print('Leave request added to history collection');
+    }).catchError((error) {
+      print('Failed to add leave request to history collection: $error');
+    });
+  }
+
+  void _showBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          height: 300,
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'History',
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('Supervisor')
+                      .doc(Supervisor.supervisorId)
+                      .collection('history')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Text('Loading...');
+                    }
+
+                    List<QueryDocumentSnapshot> historyItems =
+                        snapshot.data!.docs;
+
+                    return ListView.builder(
+                      itemCount: historyItems.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        Map<String, dynamic> leaveRequestData =
+                            historyItems[index].data() as Map<String, dynamic>;
+                        String name = leaveRequestData['requestBy'];
+                        DateTime startDate =
+                            leaveRequestData['startDate'].toDate();
+                        DateTime endDate = leaveRequestData['endDate'].toDate();
+                        String leaveType = leaveRequestData['leaveType'];
+                        String formattedStartDate =
+                            DateFormat('dd MMMM yyyy').format(startDate);
+                        String formattedEndDate =
+                            DateFormat('dd MMMM yyyy').format(endDate);
+                        String reason = leaveRequestData['reason'];
+                        String status = leaveRequestData['status'];
+
+                        return Card(
+                          elevation: 4.0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.0),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Request By: $name',
+                                  style: const TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8.0),
+                                Text(
+                                  'Leave Type: $leaveType',
+                                  style: const TextStyle(
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 8.0),
+                                Text(
+                                  'Start Date: $formattedStartDate',
+                                  style: const TextStyle(
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 8.0),
+                                Text(
+                                  'End Date: $formattedEndDate',
+                                  style: const TextStyle(
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 8.0),
+                                Text(
+                                  'Reason: $reason',
+                                  style: const TextStyle(
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 8.0),
+                                Text(
+                                  'Status: $status',
+                                  style: const TextStyle(
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 16.0),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,7 +156,7 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+          children: const [
             SizedBox(width: 10),
             Text(
               'Manage Leave Requests',
@@ -32,6 +168,15 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            color: Colors.black,
+            onPressed: () {
+              _showBottomSheet(context);
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('Employee').snapshots(),
@@ -194,6 +339,22 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                             .update({
                                                           'status': 'Approved'
                                                         });
+                                                        Map<String, dynamic>
+                                                            leaveRequestData = {
+                                                          'requestBy': name,
+                                                          'startDate':
+                                                              startDate,
+                                                          'endDate': endDate,
+                                                          'leaveType':
+                                                              leaveType,
+                                                          'reason': reason,
+                                                          'status': 'Approved',
+                                                        };
+
+                                                        addToHistoryCollection(
+                                                            Supervisor
+                                                                .supervisorId,
+                                                            leaveRequestData);
 
                                                         // Send email to the employee
                                                         String username =
@@ -228,22 +389,22 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                                   message,
                                                                   smtpServer);
                                                           // ignore: use_build_context_synchronously
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                                  SnackBar(
-                                                            content: Text(
-                                                                'Message sent: ${sendReport.toString()}'),
-                                                          ));
+                                                          CoolAlert.show(
+                                                            context: context,
+                                                            type: CoolAlertType
+                                                                .success,
+                                                            text:
+                                                                'Message sent: ${sendReport.toString()}',
+                                                          );
                                                         } on MailerException catch (e) {
                                                           // ignore: use_build_context_synchronously
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                                  SnackBar(
-                                                            content: Text(
-                                                                'Message not sent. ${e.toString()}'),
-                                                          ));
+                                                          CoolAlert.show(
+                                                            context: context,
+                                                            type: CoolAlertType
+                                                                .success,
+                                                            text:
+                                                                'Message not sent. ${e.toString()}',
+                                                          );
                                                         }
                                                       } else {
                                                         print(
@@ -329,6 +490,22 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                             .update({
                                                           'status': 'Rejected'
                                                         });
+                                                        Map<String, dynamic>
+                                                            leaveRequestData = {
+                                                          'requestBy': name,
+                                                          'startDate':
+                                                              startDate,
+                                                          'endDate': endDate,
+                                                          'leaveType':
+                                                              leaveType,
+                                                          'reason': reason,
+                                                          'status': 'Rejected',
+                                                        };
+
+                                                        addToHistoryCollection(
+                                                            Supervisor
+                                                                .supervisorId,
+                                                            leaveRequestData);
 
                                                         // Send email to the employee
                                                         String username =

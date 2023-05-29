@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cool_alert/cool_alert.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +59,17 @@ class _EmployeProfileState extends State<EmployeProfile> {
                   padding: const EdgeInsets.only(right: 20.0),
                   child: GestureDetector(
                     onTap: () {
-                      logout(context);
+                      CoolAlert.show(
+                        context: context,
+                        type: CoolAlertType.confirm,
+                        text: "Do you want to logout?",
+                        confirmBtnText: 'Yes',
+                        cancelBtnText: 'No',
+                        confirmBtnColor: Colors.green,
+                        onConfirmBtnTap: () {
+                          logout(context);
+                        },
+                      );
                     },
                     child: const Icon(
                       Icons.logout,

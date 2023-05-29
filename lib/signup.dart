@@ -150,20 +150,12 @@ class _RegisterState extends State<Register> {
                           ),
                           validator: (value) {
                             if (value!.isEmpty) {
-                              ElegantNotification.error(
-                                      title: Text("Error"),
-                                      description:
-                                          Text("Email cannot be empty"))
-                                  .show(context);
+                              return ("Email cannot be empty");
                             }
                             if (!RegExp(
                                     "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]")
                                 .hasMatch(value)) {
-                              ElegantNotification.error(
-                                      title: Text("Error"),
-                                      description:
-                                          Text("Please enter a valid email"))
-                                  .show(context);
+                              return ("Please enter a valid email");
                             } else {
                               return null;
                             }
@@ -194,21 +186,10 @@ class _RegisterState extends State<Register> {
                           ),
                           validator: (value) {
                             if (value!.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Username cannot be empty"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                              return ("Username cannot be empty");
                             }
                             if (value.length < 6) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      "Please enter a valid username with minimum 6 characters"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                              return ("Please enter a valid username with minimum 6 characters");
                             } else {
                               return null;
                             }
@@ -250,21 +231,10 @@ class _RegisterState extends State<Register> {
                           validator: (value) {
                             RegExp regex = RegExp(r'^.{6,}$');
                             if (value!.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Password cannot be empty"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                              return ("Password cannot be empty");
                             }
                             if (!regex.hasMatch(value)) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      "Please enter a valid password with minimum 6 characters"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                              return ("Please enter a valid password with minimum 6 characters");
                             } else {
                               return null;
                             }
@@ -305,11 +275,7 @@ class _RegisterState extends State<Register> {
                           validator: (value) {
                             if (confirmpassController.text !=
                                 passwordController.text) {
-                              ElegantNotification.error(
-                                      title: const Text("Error"),
-                                      description:
-                                          const Text("Password did not match"))
-                                  .show(context);
+                              return ("Password did not match");
                             } else {
                               return null;
                             }

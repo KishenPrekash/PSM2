@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -276,40 +277,20 @@ class _PayslipScreenState extends State<PayslipScreen> {
 
       File file = File(filePath);
       if (await file.exists()) {
-        showDialog(
+        // ignore: use_build_context_synchronously
+        CoolAlert.show(
           context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Success'),
-              content: Text('Payslip downloaded to $filePath'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
+          type: CoolAlertType.success,
+          text: 'Payslip downloaded to $filePath!',
         );
       } else {
-        showDialog(
+        // ignore: use_build_context_synchronously
+        CoolAlert.show(
           context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Error'),
-              content: Text('An error occurred while downloading the payslip.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
+          type: CoolAlertType.error,
+          title: 'Oops...',
+          text: 'Sorry, something went wrong',
+          autoCloseDuration: const Duration(seconds: 2),
         );
       }
     }
