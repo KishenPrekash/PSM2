@@ -31,6 +31,7 @@ class _RegisterState extends State<Register> {
   final TextEditingController empID = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController mobile = TextEditingController();
+  final TextEditingController department = TextEditingController();
   bool _isObscure = true;
   bool _isObscure2 = true;
   File? file;
@@ -201,6 +202,37 @@ class _RegisterState extends State<Register> {
                           height: 20,
                         ),
                         TextFormField(
+                          controller: department,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: 'Department',
+                            enabled: true,
+                            contentPadding: const EdgeInsets.only(
+                                left: 14.0, bottom: 8.0, top: 8.0),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(color: Colors.white),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: const BorderSide(color: Colors.white),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return ("Department cannot be empty");
+                            } else {
+                              return null;
+                            }
+                          },
+                          onChanged: (value) {},
+                          keyboardType: TextInputType.name,
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        TextFormField(
                           obscureText: _isObscure,
                           controller: passwordController,
                           decoration: InputDecoration(
@@ -302,8 +334,12 @@ class _RegisterState extends State<Register> {
                                 setState(() {
                                   showProgress = true;
                                 });
-                                signUp(emailController.text,
-                                    passwordController.text, role, empID.text);
+                                signUp(
+                                    emailController.text,
+                                    passwordController.text,
+                                    role,
+                                    empID.text,
+                                    department.text);
                               },
                               child: Text(
                                 "Register",
@@ -344,7 +380,8 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  void signUp(String email, String password, String rool, String empID) async {
+  void signUp(String email, String password, String rool, String empID,
+      String dept) async {
     const CircularProgressIndicator();
     if (_formkey.currentState!.validate()) {
       await _auth
@@ -352,16 +389,16 @@ class _RegisterState extends State<Register> {
             email: email,
             password: password,
           )
-          .then(
-              (value) => {postDetailsToFirestore(rool, empID, password, email)})
+          .then((value) =>
+              {postDetailsToFirestore(rool, empID, password, email, dept)})
           .catchError((e) {
         e.toString();
       });
     }
   }
 
-  postDetailsToFirestore(
-      String rool, String empID, String password, String email) async {
+  postDetailsToFirestore(String rool, String empID, String password,
+      String email, String dept) async {
     var user = _auth.currentUser;
 
     if (rool == "Employee") {
@@ -379,6 +416,7 @@ class _RegisterState extends State<Register> {
         'password': password,
         'email': email,
         'photo': downloadUrl.toString(),
+        'dept': dept,
       });
     } else {
       CollectionReference ref =

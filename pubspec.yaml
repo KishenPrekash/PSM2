@@ -66,6 +66,8 @@ dependencies:
   opencv_4: ^1.0.0
   google_mlkit_face_detection: ^0.6.0
   cool_alert: ^2.0.1
+ 
+
 
   
 

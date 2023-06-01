@@ -5,6 +5,7 @@ import 'package:flutter_test_a/Supervisor/ViewAttendance.dart';
 import 'package:flutter_test_a/Supervisor/editProfile.dart';
 import 'package:flutter_test_a/Supervisor/employeeList.dart';
 import 'package:flutter_test_a/Supervisor/manageLeave.dart';
+import 'package:flutter_test_a/Supervisor/monthlyReport.dart';
 import 'package:flutter_test_a/model/user.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../login.dart';
@@ -28,6 +29,7 @@ class _SupervisorScrState extends State<SupervisorScr> {
     FontAwesomeIcons.clipboardUser,
     FontAwesomeIcons.user,
     FontAwesomeIcons.wpforms,
+    FontAwesomeIcons.receipt,
   ];
   @override
   void initState() {
@@ -59,6 +61,7 @@ class _SupervisorScrState extends State<SupervisorScr> {
           new AttendanceScreen(),
           new EditProfileScreen(uid: Supervisor.supervisorId),
           new ManageLeaveScreen(),
+          new MonthlyReport(),
         ],
       ),
       bottomNavigationBar: Container(

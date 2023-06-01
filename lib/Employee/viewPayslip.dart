@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter_excel/excel.dart' as excel;
+import 'package:pdf/widgets.dart' as pw;
 import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -169,7 +170,7 @@ class _PayslipScreenState extends State<PayslipScreen> {
   Future<void> _downloadPayslip() async {
     String selectedMonth =
         DateFormat('MMMM').format(DateTime(2000, _selectedMonth, 1));
-    String payslipFileName = 'Payslip_${selectedMonth}_$_selectedYear.xlsx';
+    String payslipFileName = 'Payslip_${selectedMonth}_$_selectedYear.pdf';
 
     // Query the employee's information
     DocumentSnapshot employeeSnapshot = await FirebaseFirestore.instance
@@ -192,90 +193,87 @@ class _PayslipScreenState extends State<PayslipScreen> {
         .get();
 
     // Calculate the total working hours for the month
-    int totalWorkingHours = 0;
+    double totalWorkingHours = 0;
     for (QueryDocumentSnapshot record in attendanceSnapshot.docs) {
       DateTime checkIn = DateFormat('hh:mm').parse(record['checkIn']);
       DateTime checkOut = record['checkOut'] != '--/--'
           ? DateFormat('hh:mm').parse(record['checkOut'])
           : DateTime.now();
       Duration workingHours = checkOut.difference(checkIn);
-      totalWorkingHours += workingHours.inMinutes;
+      totalWorkingHours += workingHours.inHours;
     }
 
     // Calculate earnings
-    double regularHours = totalWorkingHours / 60;
+    double regularHours = totalWorkingHours / 1;
     double overtimeHours = 0;
     double totalEarnings = regularHours * 8;
     String earningsDescription =
         '- Regular Hours (${regularHours.toStringAsFixed(1)} x 8/hour): \$${totalEarnings.toStringAsFixed(2)}';
 
-    // Create the Excel workbook and worksheet
-    final workbook = Excel.createExcel();
-    final sheetName =
-        'Sheet_${DateFormat('MMMM_yyyy').format(DateTime(_selectedYear, _selectedMonth, 1))}';
-    final sheet = workbook[sheetName];
+    // Create the PDF document
+    final pdf = pw.Document();
 
-    // Write the employee name and pay period
-    sheet.appendRow(['Employee Name: $employeeName']);
-    sheet.appendRow(['Pay Period: $selectedMonth $_selectedYear']);
-    sheet.appendRow([]);
+    // Create the PDF content
+    pdf.addPage(
+      pw.MultiPage(
+        build: (pw.Context context) => <pw.Widget>[
+          pw.Header(
+            level: 0,
+            child: pw.Text('Employee Name: $employeeName'),
+          ),
+          pw.Header(
+            level: 1,
+            child: pw.Text('Pay Period: $selectedMonth $_selectedYear'),
+          ),
+          pw.Table.fromTextArray(
+            context: context,
+            data: <List<String>>[
+              [
+                'Date',
+                'Check In',
+                'Check In Location',
+                'Check Out',
+                'Check Out Location',
+                'Working Hours (seconds)'
+              ],
+              // Attendance records
+              ...attendanceSnapshot.docs.map((record) => [
+                    DateFormat('MMMM d, yyyy')
+                        .format(record['date'].toDate())
+                        .toString(),
+                    record['checkIn'].toString(),
+                    record['checkInLocation'].toString(),
+                    record['checkOut'].toString(),
+                    record['checkOutLocation'].toString(),
+                    record['workingHours'] != null
+                        ? record['workingHours'].toString()
+                        : '-',
+                  ]),
+            ],
+          ),
+          pw.Header(
+            level: 1,
+            child: pw.Text('Total Hours Worked: $totalWorkingHours'),
+          ),
+          pw.Header(
+            level: 1,
+            child: pw.Text('Earnings'),
+          ),
+          pw.Text(earningsDescription),
+        ],
+      ),
+    );
 
-    // Write the header row
-    sheet.appendRow([
-      'Date',
-      'Check In',
-      'Check In Location',
-      'Check Out',
-      'Check Out Location',
-      'Working Hours'
-    ]);
-
-    // Write the attendance records to the worksheet
-    for (QueryDocumentSnapshot record in attendanceSnapshot.docs) {
-      String date =
-          DateFormat('MMMM d, yyyy').format(record['date'].toDate()).toString();
-      String checkIn = record['checkIn'].toString();
-      String checkInLocation = record['checkInLocation'].toString();
-      String checkOut = record['checkOut'].toString();
-      String checkOutLocation = record['checkOutLocation'].toString();
-      String workingHours = record['workingHours'] != null
-          ? record['workingHours'].toString()
-          : '-';
-
-      sheet.appendRow([
-        date,
-        checkIn,
-        checkInLocation,
-        checkOut,
-        checkOutLocation,
-        workingHours
-      ]);
-    }
-    sheet.appendRow([]);
-
-    // Write the total working hours to the worksheet
-    sheet.appendRow(
-        ['Total Hours Worked:', '', '', '', '', totalWorkingHours.toString()]);
-    sheet.appendRow([]);
-
-    sheet.appendRow(['Earnings']);
-    sheet.appendRow([earningsDescription]);
-    sheet.appendRow([]);
-
+    // Get the directory for saving the file
     Directory? directory = await getExternalStorageDirectory();
 
     if (directory != null) {
-      String filePath = path.join(directory.path, payslipFileName);
+      String filePath = '${directory.path}/$payslipFileName';
 
-      // Write the total working hours to the worksheet
-      sheet.appendRow(
-          ['Total Working Hours:', '', '', '', '', totalWorkingHours]);
+      // Save the PDF file to device storage
+      final File file = File(filePath);
+      await file.writeAsBytes(await pdf.save());
 
-      // Save the Excel file to device storage
-      final encoded = workbook.encode();
-      File(filePath).writeAsBytesSync(encoded!);
-
-      File file = File(filePath);
       if (await file.exists()) {
         // ignore: use_build_context_synchronously
         CoolAlert.show(

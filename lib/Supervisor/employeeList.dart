@@ -59,74 +59,101 @@ class EmployeeList extends StatelessWidget {
                   showModalBottomSheet(
                     context: context,
                     builder: (context) {
-                      return Container(
-                        height: 300.0,
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10.0),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 10,
-                              offset: Offset(2, 2),
+                      if (empData['firstName'] == null) {
+                        return Container(
+                          height: 300.0,
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10.0),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 10,
+                                offset: Offset(2, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              'No record found.',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.grey[700],
+                              ),
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    empData['firstName'] +
-                                        ' ' +
-                                        empData['lastName'],
-                                    style: const TextStyle(
-                                      fontSize: 24.0,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueAccent,
+                          ),
+                        );
+                      } else {
+                        return Container(
+                          height: 300.0,
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10.0),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 10,
+                                offset: Offset(2, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      empData['firstName'] +
+                                          ' ' +
+                                          empData['lastName'],
+                                      style: const TextStyle(
+                                        fontSize: 24.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blueAccent,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Text(
-                                  empData['id'],
-                                  style: TextStyle(
-                                    fontSize: 20.0,
-                                    color: Colors.grey[700],
+                                  Text(
+                                    empData['id'],
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      color: Colors.grey[700],
+                                    ),
                                   ),
+                                ],
+                              ),
+                              const SizedBox(height: 8.0),
+                              const SizedBox(height: 16.0),
+                              Text(
+                                'Email: ${empData['email']}',
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  color: Colors.grey[700],
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 8.0),
-                            const SizedBox(height: 16.0),
-                            Text(
-                              'Email: ${empData['email']}',
-                              style: TextStyle(
-                                fontSize: 18.0,
-                                color: Colors.grey[700],
                               ),
-                            ),
-                            const SizedBox(height: 16.0),
-                            Text(
-                              'Birth Date: ${empData['birthDate']}',
-                              style: TextStyle(
-                                fontSize: 18.0,
-                                color: Colors.grey[700],
+                              const SizedBox(height: 16.0),
+                              Text(
+                                'Birth Date: ${empData['birthDate']}',
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  color: Colors.grey[700],
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 16.0),
-                            Text(
-                              'Address: ${empData['address']}',
-                              style: TextStyle(
-                                fontSize: 18.0,
-                                color: Colors.grey[700],
+                              const SizedBox(height: 16.0),
+                              Text(
+                                'Address: ${empData['address']}',
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  color: Colors.grey[700],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
+                            ],
+                          ),
+                        );
+                      }
                     },
                   );
                 },

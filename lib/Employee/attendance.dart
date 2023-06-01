@@ -458,7 +458,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             //     checkInStatus = 'Late';
                             //   });
                             // }
-                            if (now.hour >= 17 && checkOut == Null) {
+                            if (now.hour >= 17 &&
+                                checkOut == "--/--" &&
+                                checkIn == "--/--") {
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
@@ -618,139 +620,96 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               return; // Do not proceed with check-in
                             }
 
-                            final pickedFile = await ImagePicker()
-                                .getImage(source: ImageSource.camera);
-                            if (pickedFile == null) {
-                              // User did not take a picture
-                              return;
-                            }
-                            final inputImage =
-                                InputImage.fromFilePath(pickedFile.path);
-
-                            final options = FaceDetectorOptions();
-                            final faceDetector = FaceDetector(options: options);
-                            final List<Face> faces =
-                                await faceDetector.processImage(inputImage);
-                            if (faces.isEmpty) {
-                              // ignore: use_build_context_synchronously
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text("No Face Detected"),
-                                    content: const Text(
-                                        "Please make sure your face is visible in the picture."),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text("OK"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                              return;
-                            } else {
-                              // ignore: use_build_context_synchronously
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text("Face Detected"),
-                                    content: const Text(
-                                        "Successfully Face Detected"),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text("OK"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-
-                              final storageRef = FirebaseStorage.instance
-                                  .ref()
-                                  .child('employee_photos/${Employee.id}');
-                              final photoUrl =
-                                  await storageRef.getDownloadURL();
-                              final inputImage =
-                                  InputImage.fromFilePath(photoUrl);
-
-                              final referencePhotoData =
-                                  await NetworkAssetBundle(Uri.parse(photoUrl))
-                                      .load('');
-                              final referencePhotoBytes =
-                                  referencePhotoData.buffer.asUint8List();
-
-                              final result =
-                                  await photoUrl.compareTo(pickedFile.path);
-
-                              if (result == 1) {
-                                // ignore: use_build_context_synchronously
-                                CoolAlert.show(
-                                  context: context,
-                                  type: CoolAlertType.success,
-                                  text: "Face recognition successful!",
-                                );
-                              } else {
-                                // ignore: use_build_context_synchronously
-                                CoolAlert.show(
-                                  context: context,
-                                  type: CoolAlertType.error,
-                                  text: "Face not matched!",
-                                );
-                                return;
-                              }
-                            }
-
-                            // final LocalAuthentication localAuth =
-                            //     LocalAuthentication();
-                            // bool canCheckBiometrics =
-                            //     await localAuth.canCheckBiometrics;
-
-                            // if (canCheckBiometrics) {
-                            //   bool isFingerprintAuthSuccessful =
-                            //       await localAuth.authenticate(
-                            //           localizedReason:
-                            //               'Please authenticate to proceed',
-                            //           options: const AuthenticationOptions(
-                            //               biometricOnly: true));
-
-                            //   if (!isFingerprintAuthSuccessful) {
-                            //     // Fingerprint authentication successful
-                            //     // ignore: use_build_context_synchronously
-                            //     ScaffoldMessenger.of(context).showSnackBar(
-                            //       const SnackBar(
-                            //         content: Text(
-                            //             'Fingerprint authentication failed'),
-                            //       ),
-                            //     );
-                            //     return;
-                            //   } else {
-                            //     // Fingerprint authentication failed
-                            //     // ignore: use_build_context_synchronously
-                            //     ScaffoldMessenger.of(context).showSnackBar(
-                            //       const SnackBar(
-                            //         content: Text(
-                            //             'Fingerprint authentication successful'),
-                            //       ),
-                            //     );
-                            //   }
-                            // } else {
-                            //   // ignore: use_build_context_synchronously
-                            //   ScaffoldMessenger.of(context).showSnackBar(
-                            //     const SnackBar(
-                            //       content: Text('Authentication Error'),
-                            //     ),
-                            //   );
+                            // final pickedFile = await ImagePicker()
+                            //     .getImage(source: ImageSource.camera);
+                            // if (pickedFile == null) {
+                            //   // User did not take a picture
                             //   return;
                             // }
+                            // final inputImage =
+                            //     InputImage.fromFilePath(pickedFile.path);
 
+                            // final options = FaceDetectorOptions();
+                            // final faceDetector = FaceDetector(options: options);
+                            // final List<Face> faces =
+                            //     await faceDetector.processImage(inputImage);
+                            // if (faces.isEmpty) {
+                            //   // ignore: use_build_context_synchronously
+                            //   showDialog(
+                            //     context: context,
+                            //     builder: (BuildContext context) {
+                            //       return AlertDialog(
+                            //         title: const Text("No Face Detected"),
+                            //         content: const Text(
+                            //             "Please make sure your face is visible in the picture."),
+                            //         actions: [
+                            //           TextButton(
+                            //             child: const Text("OK"),
+                            //             onPressed: () {
+                            //               Navigator.of(context).pop();
+                            //             },
+                            //           ),
+                            //         ],
+                            //       );
+                            //     },
+                            //   );
+                            //   return;
+                            // } else {
+                            //   // ignore: use_build_context_synchronously
+                            //   showDialog(
+                            //     context: context,
+                            //     builder: (BuildContext context) {
+                            //       return AlertDialog(
+                            //         title: const Text("Face Detected"),
+                            //         content: const Text(
+                            //             "Successfully Face Detected"),
+                            //         actions: [
+                            //           TextButton(
+                            //             child: const Text("OK"),
+                            //             onPressed: () {
+                            //               Navigator.of(context).pop();
+                            //             },
+                            //           ),
+                            //         ],
+                            //       );
+                            //     },
+                            //   );
+
+                            //   final storageRef = FirebaseStorage.instance
+                            //       .ref()
+                            //       .child('employee_photos/${Employee.id}');
+                            //   final photoUrl =
+                            //       await storageRef.getDownloadURL();
+
+                            //   final inputImage1 =
+                            //       InputImage.fromFilePath(photoUrl);
+
+                            //   final referencePhotoData =
+                            //       await NetworkAssetBundle(Uri.parse(photoUrl))
+                            //           .load('');
+                            //   final referencePhotoBytes =
+                            //       referencePhotoData.buffer.asUint8List();
+
+                            //   final result =
+                            //       await photoUrl.compareTo(pickedFile.path);
+
+                            //   if (result == 1) {
+                            //     // ignore: use_build_context_synchronously
+                            //     CoolAlert.show(
+                            //       context: context,
+                            //       type: CoolAlertType.success,
+                            //       text: "Face recognition successful!",
+                            //     );
+                            //   } else {
+                            //     // ignore: use_build_context_synchronously
+                            //     CoolAlert.show(
+                            //       context: context,
+                            //       type: CoolAlertType.error,
+                            //       text: "Face not matched!",
+                            //     );
+                            //     return;
+                            //   }
+                            // }
                             final snap = await FirebaseFirestore.instance
                                 .collection("Employee")
                                 .where('id', isEqualTo: Employee.employeeId)
@@ -975,6 +934,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     ));
   }
 }
+
+
 
   // final LocalAuthentication localAuth =
   //                               LocalAuthentication();
