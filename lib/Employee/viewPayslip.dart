@@ -168,9 +168,24 @@ class _PayslipScreenState extends State<PayslipScreen> {
   }
 
   Future<void> _downloadPayslip() async {
+    int workingDays = 0;
+    int absentDays = 0;
+    int approvedLeaveDays = 0;
+    int totalWorkingDays = 0;
     String selectedMonth =
         DateFormat('MMMM').format(DateTime(2000, _selectedMonth, 1));
     String payslipFileName = 'Payslip_${selectedMonth}_$_selectedYear.pdf';
+
+    for (int day = 1;
+        day <= DateTime(_selectedYear, _selectedMonth + 1, 0).day;
+        day++) {
+      DateTime currentDate = DateTime(_selectedYear, _selectedMonth, day);
+
+      // Check if the current date is a weekday (Monday to Friday)
+      if (currentDate.weekday >= 1 && currentDate.weekday <= 5) {
+        totalWorkingDays++;
+      }
+    }
 
     // Query the employee's information
     DocumentSnapshot employeeSnapshot = await FirebaseFirestore.instance
@@ -201,7 +216,35 @@ class _PayslipScreenState extends State<PayslipScreen> {
           : DateTime.now();
       Duration workingHours = checkOut.difference(checkIn);
       totalWorkingHours += workingHours.inHours;
+      workingDays++;
     }
+
+    QuerySnapshot leaveSnapshot = await FirebaseFirestore.instance
+        .collection('Employee')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('leaveRequests')
+        .where('status', isEqualTo: 'Approved')
+        .get();
+
+    for (QueryDocumentSnapshot record in leaveSnapshot.docs) {
+      DateTime startDate = record['startDate'].toDate();
+      DateTime endDate = record['endDate'].toDate();
+
+      // Check if the leave period overlaps with the selected month
+      if (startDate.year == _selectedYear &&
+          startDate.month == _selectedMonth) {
+        // Calculate the number of days in the leave period
+        int leaveDays = endDate.difference(startDate).inDays + 1;
+
+        // Increment absentDays for each leave day
+        absentDays += leaveDays;
+
+        // Increment approvedLeaveDays for each leave day
+        approvedLeaveDays += leaveDays;
+      }
+    }
+
+    // int actualTotalWorkingDays = totalWorkingDays - approvedLeaveDays;
 
     // Calculate earnings
     double regularHours = totalWorkingHours / 1;
@@ -224,6 +267,14 @@ class _PayslipScreenState extends State<PayslipScreen> {
           pw.Header(
             level: 1,
             child: pw.Text('Pay Period: $selectedMonth $_selectedYear'),
+          ),
+          pw.Header(
+            level: 1,
+            child: pw.Text('Working Days: $workingDays'),
+          ),
+          pw.Header(
+            level: 1,
+            child: pw.Text('Approved Leave Days: $approvedLeaveDays'),
           ),
           pw.Table.fromTextArray(
             context: context,

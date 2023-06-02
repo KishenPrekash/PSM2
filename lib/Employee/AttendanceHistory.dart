@@ -139,7 +139,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasData) {
-                  final snap = snapshot.data!.docs;
+                  final snap = snapshot.data!.docs.reversed.toList();
                   return ListView.builder(
                     itemCount: snap.length,
                     itemBuilder: (context, index) {
