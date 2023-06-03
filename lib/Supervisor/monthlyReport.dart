@@ -31,6 +31,7 @@ class _MonthlyReportState extends State<MonthlyReport> {
           .doc(employeeId)
           .get();
       String employeeName = employeeDoc.get('id');
+      String employeeDept = employeeDoc.get('dept');
 
       QuerySnapshot attendanceSnapshot = await FirebaseFirestore.instance
           .collection('Employee')
@@ -88,6 +89,7 @@ class _MonthlyReportState extends State<MonthlyReport> {
           workingDays: workingDays,
           leavesTaken: leavesTaken,
           absentDays: absentDays,
+          employeedept: employeeDept,
         ),
       );
     }
@@ -117,6 +119,7 @@ class _MonthlyReportState extends State<MonthlyReport> {
                 data: [
                   [
                     'Employee Name',
+                    'Department',
                     'Working Days',
                     'Leaves Taken',
                     'Absent Days'
@@ -124,6 +127,7 @@ class _MonthlyReportState extends State<MonthlyReport> {
                   for (var employee in employeeList)
                     [
                       employee.employeeName,
+                      employee.employeedept,
                       employee.workingDays.toString(),
                       employee.leavesTaken.toString(),
                       (totalActualWorkingDays -
@@ -281,6 +285,7 @@ class Employee {
   final String employeeName;
   final int leavesTaken;
   final int absentDays;
+  final String employeedept;
 
   Employee({
     required this.employeeId,
@@ -288,5 +293,6 @@ class Employee {
     required this.employeeName,
     required this.leavesTaken,
     required this.absentDays,
+    required this.employeedept,
   });
 }
