@@ -92,8 +92,107 @@ class EmployeeList extends StatelessWidget {
 
                       return GestureDetector(
                         onTap: () {
-                          // Show employee details
-                          // ...
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) {
+                              if (empData['firstName'] == null) {
+                                return Container(
+                                  height: 300.0,
+                                  padding: const EdgeInsets.all(16.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 10,
+                                        offset: Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'No record found.',
+                                      style: TextStyle(
+                                        fontSize: 18.0,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                return Container(
+                                  height: 300.0,
+                                  padding: const EdgeInsets.all(16.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 10,
+                                        offset: Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              empData['firstName'] +
+                                                  ' ' +
+                                                  empData['lastName'],
+                                              style: const TextStyle(
+                                                fontSize: 24.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.blueAccent,
+                                              ),
+                                            ),
+                                          ),
+                                          Text(
+                                            empData['id'],
+                                            style: TextStyle(
+                                              fontSize: 20.0,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      const SizedBox(height: 16.0),
+                                      Text(
+                                        'Email: ${empData['email']}',
+                                        style: TextStyle(
+                                          fontSize: 18.0,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16.0),
+                                      Text(
+                                        'Birth Date: ${empData['birthDate']}',
+                                        style: TextStyle(
+                                          fontSize: 18.0,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16.0),
+                                      Text(
+                                        'Address: ${empData['address']}',
+                                        style: TextStyle(
+                                          fontSize: 18.0,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            },
+                          );
                         },
                         child: Card(
                           elevation: 2.0,
@@ -116,18 +215,13 @@ class EmployeeList extends StatelessWidget {
                               style: const TextStyle(fontSize: 16.0),
                             ),
                             leading: CircleAvatar(
-                              backgroundColor: Colors.blue[200],
-                              backgroundImage: empData['photo'] != null
-                                  ? NetworkImage(empData['photo'])
-                                  : null,
-                              child: empData['photo'] == null
-                                  ? const Icon(
-                                      Icons.person,
-                                      size: 30.0,
-                                      color: Colors.white,
-                                    )
-                                  : null,
-                            ),
+  backgroundColor: Colors.blue[200],
+  child: const Icon(
+    Icons.person,
+    size: 30.0,
+    color: Colors.white,
+  ),
+),
                             trailing: IconButton(
                               icon: const Icon(
                                 Icons.delete,
