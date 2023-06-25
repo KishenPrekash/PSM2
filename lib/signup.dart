@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elegant_notification/elegant_notification.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -187,13 +188,18 @@ class _RegisterState extends State<Register> {
                           ),
                           validator: (value) {
                             if (value!.isEmpty) {
-                              return ("Username cannot be empty");
+                              return "Username cannot be empty";
                             }
+
                             if (value.length < 6) {
-                              return ("Please enter a valid username with minimum 6 characters");
-                            } else {
-                              return null;
+                              return "Please enter a valid username with minimum 6 characters";
                             }
+
+                            if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+                              return "Username can only contain letters, numbers, and underscores";
+                            }
+
+                            return null; // Username is valid
                           },
                           onChanged: (value) {},
                           keyboardType: TextInputType.name,
@@ -261,15 +267,28 @@ class _RegisterState extends State<Register> {
                             ),
                           ),
                           validator: (value) {
-                            RegExp regex = RegExp(r'^.{6,}$');
                             if (value!.isEmpty) {
-                              return ("Password cannot be empty");
+                              return "Password cannot be empty";
                             }
-                            if (!regex.hasMatch(value)) {
-                              return ("Please enter a valid password with minimum 6 characters");
-                            } else {
-                              return null;
+
+                            if (value.length < 6) {
+                              return "Password must have at least 6 characters";
                             }
+
+                            // Additional validation checks
+                            if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                              return "Password must contain at least one uppercase letter";
+                            }
+
+                            if (!RegExp(r'[a-z]').hasMatch(value)) {
+                              return "Password must contain at least one lowercase letter";
+                            }
+
+                            if (!RegExp(r'[0-9]').hasMatch(value)) {
+                              return "Password must contain at least one digit";
+                            }
+
+                            return null; // Password is valid
                           },
                           onChanged: (value) {},
                         ),
@@ -400,10 +419,49 @@ class _RegisterState extends State<Register> {
   postDetailsToFirestore(String rool, String empID, String password,
       String email, String dept) async {
     var user = _auth.currentUser;
+    var imageFile;
 
     if (rool == "Employee") {
-      final imageFile =
-          await ImagePicker().pickImage(source: ImageSource.camera);
+      while (true) {
+        imageFile = await ImagePicker().pickImage(source: ImageSource.camera);
+        final inputImage = InputImage.fromFilePath(imageFile!.path);
+        final options = FaceDetectorOptions();
+        final faceDetector = FaceDetector(options: options);
+        final List<Face> faces = await faceDetector.processImage(inputImage);
+        if (faces.isEmpty) {
+          // ignore: use_build_context_synchronously
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("No Face Detected"),
+                content: const Text(
+                    "Please make sure your face is visible in the picture."),
+              );
+            },
+          );
+        } else {
+          // ignore: use_build_context_synchronously
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Face Detected"),
+                content: const Text("Successfully Saved in Database"),
+                actions: [
+                  TextButton(
+                    child: const Text("OK"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+          break;
+        }
+      }
       final storageRef =
           FirebaseStorage.instance.ref().child('employee_photos/${user!.uid}');
       final uploadTask = storageRef.putFile(File(imageFile!.path));

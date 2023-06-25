@@ -1,3 +1,4 @@
+import 'package:cool_alert/cool_alert.dart';
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -255,6 +256,15 @@ class _LoginPageState extends State<LoginPage> {
               builder: (context) => const SupervisorScr(),
             ),
           );
+          // Show success message using CoolAlert
+          CoolAlert.show(
+            context: context,
+            type: CoolAlertType.success,
+            title: 'Logged In',
+            text: 'Successfully logged in as a Supervisor.',
+            confirmBtnText: 'OK',
+            onConfirmBtnTap: () {},
+          );
         }
       } else {
         var employeeSnapshot = await FirebaseFirestore.instance
@@ -271,8 +281,18 @@ class _LoginPageState extends State<LoginPage> {
               builder: (context) => const HomeScreen(),
             ),
           );
+          // Show success message using CoolAlert
+          // ignore: use_build_context_synchronously
+          CoolAlert.show(
+            context: context,
+            type: CoolAlertType.success,
+            title: 'Logged In',
+            text: 'Successfully logged in as an Employee.',
+            confirmBtnText: 'OK',
+            onConfirmBtnTap: () {},
+          );
         } else {
-          return ('Document does not exist on the database');
+          return ('Document does not exist in the database');
         }
       }
     });

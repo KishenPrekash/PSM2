@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class MonthlyReport extends StatefulWidget {
   @override
@@ -15,7 +17,30 @@ class _MonthlyReportState extends State<MonthlyReport> {
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
 
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 16),
+                Text('Loading...'),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _generateMonthlyReportPdf() async {
+    showLoadingDialog(context);
     DateTime selectedDate = DateTime(_selectedYear, _selectedMonth, 1);
 
     QuerySnapshot snapshot =
@@ -147,20 +172,30 @@ class _MonthlyReportState extends State<MonthlyReport> {
     final file = File('${output!.path}/monthly_report.pdf');
     await file.writeAsBytes(await pdf.save());
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('PDF Generated'),
-        content: Text(
-            'Monthly report PDF generated successfully.\n\nPath: ${file.path}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
+    if (file.existsSync()) {
+      // ignore: use_build_context_synchronously
+      Navigator.pop(context);
+      CoolAlert.show(
+        context: context,
+        type: CoolAlertType.success,
+        title: 'PDF Generated',
+        text:
+            'Monthly report PDF generated successfully.\n\nPath: ${file.path}',
+        confirmBtnText: 'Close',
+        onConfirmBtnTap: () {},
+      );
+    } else {
+      // ignore: use_build_context_synchronously
+      Navigator.pop(context);
+      CoolAlert.show(
+        context: context,
+        type: CoolAlertType.error,
+        title: 'PDF Generation Failed',
+        text: 'Failed to generate the monthly report PDF.',
+        confirmBtnText: 'Close',
+        onConfirmBtnTap: () {},
+      );
+    }
   }
 
   bool _isWorkingDay(DateTime date) {

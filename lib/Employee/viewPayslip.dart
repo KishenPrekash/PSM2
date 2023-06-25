@@ -244,9 +244,6 @@ class _PayslipScreenState extends State<PayslipScreen> {
       }
     }
 
-    // int actualTotalWorkingDays = totalWorkingDays - approvedLeaveDays;
-
-    // Calculate earnings
     double regularHours = totalWorkingHours / 1;
     double overtimeHours = 0;
     double totalEarnings = regularHours * 8;
@@ -315,13 +312,11 @@ class _PayslipScreenState extends State<PayslipScreen> {
       ),
     );
 
-    // Get the directory for saving the file
     Directory? directory = await getExternalStorageDirectory();
 
     if (directory != null) {
       String filePath = '${directory.path}/$payslipFileName';
 
-      // Save the PDF file to device storage
       final File file = File(filePath);
       await file.writeAsBytes(await pdf.save());
 

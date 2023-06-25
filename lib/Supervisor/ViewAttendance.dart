@@ -130,6 +130,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     String name = employee['id'];
                     String position = 'Employee';
                     String id = employee.id;
+                    String department = employee['dept'];
 
                     Stream<DocumentSnapshot> recordStream = FirebaseFirestore
                         .instance
@@ -199,6 +200,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                       SizedBox(height: 8),
                                       Text(
                                         position,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        department, // Display the department value
                                         style: TextStyle(
                                           fontSize: 16,
                                           color: Colors.black,

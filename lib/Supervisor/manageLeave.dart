@@ -300,17 +300,17 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                   },
                                                 ),
                                                 TextButton(
-                                                  child: Text('Approve'),
+                                                  child: const Text('Approve'),
                                                   onPressed: () {
                                                     // Update the status to "Approved"
                                                     FirebaseFirestore.instance
                                                         .collection("Employee")
-                                                        .doc(leaveRequests[
-                                                                index]
-                                                            .reference
-                                                            .parent
-                                                            .parent!
-                                                            .id) // assuming user.uid is the ID of the employee
+                                                        .doc(
+                                                            leaveRequests[index]
+                                                                .reference
+                                                                .parent
+                                                                .parent!
+                                                                .id)
                                                         .get()
                                                         .then((DocumentSnapshot
                                                             documentSnapshot) async {
@@ -320,7 +320,6 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                             documentSnapshot[
                                                                 'email'];
 
-                                                        // Update the leave request status to "Approved"
                                                         FirebaseFirestore
                                                             .instance
                                                             .collection(
