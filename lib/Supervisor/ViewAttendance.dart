@@ -13,6 +13,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   int punctualCount = 0;
 
   @override
+  void initState() {
+    super.initState();
+    calculateSummary();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -44,7 +50,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           }
 
           List<QueryDocumentSnapshot> employees = snapshot.data!.docs;
-          calculateSummary(employees);
+          calculateSummary();
           return Column(
             children: [
               SizedBox(height: 16),
@@ -153,7 +159,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         String checkOutTime = record?['checkOut'] ?? '';
 
                         Color containerColor;
-                        if (checkInTime.compareTo('07:30 AM') > 0) {
+                        if (checkInTime.compareTo('08:00 AM') > 0) {
                           // employee is absent
                           containerColor = Colors.red;
                         } else if (checkInTime.isEmpty ||
@@ -257,7 +263,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  void calculateSummary(List<QueryDocumentSnapshot> employees) async {
+  @override
+  void dispose() {
+    super.dispose();
+    // Perform any cleanup or cancellation here
+  }
+
+  void calculateSummary() async {
+    List<QueryDocumentSnapshot> employees = await FirebaseFirestore.instance
+        .collection('Employee')
+        .get()
+        .then((snapshot) => snapshot.docs);
+
     int lateCount = 0;
     int absentCount = 0;
     int punctualCount = 0;
@@ -274,6 +291,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           .get();
 
       futures.add(recordFuture.then((snapshot) {
+        if (!mounted) return;
         Map<String, dynamic>? record = snapshot.data() as Map<String, dynamic>?;
         if (record == null) {
           absentCount++;
@@ -293,6 +311,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     // Wait for all futures to complete before updating the state
     await Future.wait(futures);
+
+    if (!mounted) return;
 
     setState(() {
       this.lateCount = lateCount;

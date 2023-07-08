@@ -32,7 +32,7 @@ class _RegisterState extends State<Register> {
   final TextEditingController empID = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController mobile = TextEditingController();
-  final TextEditingController department = TextEditingController();
+  TextEditingController departmentController = TextEditingController();
   bool _isObscure = true;
   bool _isObscure2 = true;
   File? file;
@@ -42,6 +42,17 @@ class _RegisterState extends State<Register> {
   ];
   var _currentItemSelected = "Employee";
   var role = "Employee";
+
+  var options1 = [
+    'Sales',
+    'Operation',
+    'Marketing',
+    'Finance Department',
+    'Purchase Department',
+    'HR Department',
+  ];
+  var _currentItemSelected1 = "Sales";
+  var dept = "Sales";
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +141,37 @@ class _RegisterState extends State<Register> {
                           ],
                         ),
                         const SizedBox(
-                          height: 50,
+                          height: 20,
+                        ),
+                        DropdownButton<String>(
+                          dropdownColor: Colors.blue[900],
+                          isDense: true,
+                          isExpanded: false,
+                          iconEnabledColor: Colors.white,
+                          focusColor: Colors.white,
+                          items: options1.map((String dropDownStringItem) {
+                            return DropdownMenuItem<String>(
+                              value: dropDownStringItem,
+                              child: Text(
+                                dropDownStringItem,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (newValueSelected) {
+                            setState(() {
+                              _currentItemSelected1 = newValueSelected!;
+                              dept = newValueSelected;
+                            });
+                          },
+                          value: _currentItemSelected1,
+                        ),
+                        const SizedBox(
+                          height: 20,
                         ),
                         TextFormField(
                           controller: emailController,
@@ -200,37 +241,6 @@ class _RegisterState extends State<Register> {
                             }
 
                             return null; // Username is valid
-                          },
-                          onChanged: (value) {},
-                          keyboardType: TextInputType.name,
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        TextFormField(
-                          controller: department,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            hintText: 'Department',
-                            enabled: true,
-                            contentPadding: const EdgeInsets.only(
-                                left: 14.0, bottom: 8.0, top: 8.0),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.white),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.white),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return ("Department cannot be empty");
-                            } else {
-                              return null;
-                            }
                           },
                           onChanged: (value) {},
                           keyboardType: TextInputType.name,
@@ -358,7 +368,7 @@ class _RegisterState extends State<Register> {
                                     passwordController.text,
                                     role,
                                     empID.text,
-                                    department.text);
+                                    dept);
                               },
                               child: Text(
                                 "Register",

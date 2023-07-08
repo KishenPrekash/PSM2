@@ -59,7 +59,7 @@ class _SupervisorScrState extends State<SupervisorScr> {
         children: [
           new EmployeeList(),
           new AttendanceScreen(),
-          new EditProfileScreen(uid: Supervisor.supervisorId),
+          new EditProfilePage(),
           new ManageLeaveScreen(),
           new MonthlyReport(),
         ],

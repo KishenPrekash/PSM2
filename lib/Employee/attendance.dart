@@ -67,7 +67,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     double distance =
         calculateDistance(employeeLat, employeeLng, companyLat, companyLng);
 
-    double thresholdDistance = 1000;
+    double thresholdDistance = 100;
 
     return distance <= thresholdDistance;
   }

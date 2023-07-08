@@ -81,6 +81,14 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
           ],
         ),
       );
+
+      // Clear form fields
+      setState(() {
+        selectedLeaveType = 'Vacation';
+        startDate = DateTime.now();
+        endDate = DateTime.now();
+        reason = '';
+      });
     }).catchError((error) {
       showDialog(
         context: context,

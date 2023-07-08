@@ -75,6 +75,11 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       if ((doc.data()! as Map<String, dynamic>).containsKey('photo')) {
         Employee.profilePicLink = doc['photo'];
+        Employee.canEdit = doc['canEdit'];
+        Employee.firstName = doc['firstName'];
+        Employee.lastName = doc['lastName'];
+        Employee.address = doc['address'];
+        Employee.birthDate = doc['birthDate'];
       }
     });
   }

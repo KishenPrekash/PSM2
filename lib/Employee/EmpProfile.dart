@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EmployeProfile extends StatefulWidget {
-  const EmployeProfile({super.key});
+  const EmployeProfile({Key? key}) : super(key: key);
 
   @override
   State<EmployeProfile> createState() => _EmployeProfileState();
@@ -28,6 +28,30 @@ class _EmployeProfileState extends State<EmployeProfile> {
   TextEditingController addressController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize the text controllers with the values from Firestore
+    loadEmployeeDetails();
+  }
+
+  void loadEmployeeDetails() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final employeeDoc =
+          FirebaseFirestore.instance.collection('Employee').doc(user.uid);
+      final employeeSnapshot = await employeeDoc.get();
+      if (employeeSnapshot.exists) {
+        final data = employeeSnapshot.data();
+        setState(() {
+          firstNameController.text = data?['firstName'] ?? '';
+          lastNameController.text = data?['lastName'] ?? '';
+          addressController.text = data?['address'] ?? '';
+          birth = data?['birthDate'] ?? '';
+        });
+      }
+    }
+  }
+
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
@@ -107,11 +131,11 @@ class _EmployeProfileState extends State<EmployeProfile> {
               height: 19,
             ),
             isEditing
-                ? textField("First Name", "First name", firstNameController)
-                : field("First Name", Employee.firstName),
+                ? textField("First Name", firstNameController)
+                : field("First Name", firstNameController),
             isEditing
-                ? textField("Last Name", "Last name", lastNameController)
-                : field("Last Name", Employee.lastName),
+                ? textField("Last Name", lastNameController)
+                : field("Last Name", lastNameController),
             const Align(
               alignment: Alignment.center,
               child: Text(
@@ -174,20 +198,21 @@ class _EmployeProfileState extends State<EmployeProfile> {
                   ),
                 ),
                 child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      isEditing ? birth : Employee.birthDate,
-                      style: const TextStyle(
-                        color: Colors.black54,
-                        fontFamily: "NexaBold",
-                        fontSize: 16,
-                      ),
-                    )),
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    isEditing ? birth : Employee.birthDate,
+                    style: const TextStyle(
+                      color: Colors.black54,
+                      fontFamily: "NexaBold",
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               ),
             ),
             isEditing
-                ? textField("Address", "Address", addressController)
-                : field("Address", Employee.address),
+                ? textField("Address", addressController)
+                : field("Address", addressController),
             GestureDetector(
               onTap: () async {
                 if (isEditing) {
@@ -205,16 +230,19 @@ class _EmployeProfileState extends State<EmployeProfile> {
                   } else if (address.isEmpty) {
                     showSnackBar("Please enter your address!");
                   } else {
-                    await FirebaseFirestore.instance
-                        .collection("Employee")
-                        .doc(Employee.id)
-                        .update({
-                      'firstName': firstName,
-                      'lastName': lastName,
-                      'address': address,
-                      'birthDate': birthDate,
-                      'canEdit': false,
-                    });
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      await FirebaseFirestore.instance
+                          .collection("Employee")
+                          .doc(user.uid)
+                          .update({
+                        'firstName': firstName,
+                        'lastName': lastName,
+                        'address': address,
+                        'birthDate': birthDate,
+                        'canEdit': false,
+                      });
+                    }
 
                     setState(() {
                       isEditing = false;
@@ -259,7 +287,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
     );
   }
 
-  Widget field(String title, String text) {
+  Widget field(String title, TextEditingController controller) {
     return Column(
       children: [
         Align(
@@ -278,7 +306,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.only(left: 11),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(3),
+            borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: Colors.black54,
             ),
@@ -286,7 +314,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              text,
+              controller.text,
               style: const TextStyle(
                 color: Colors.black54,
                 fontFamily: "NexaBold",
@@ -299,14 +327,13 @@ class _EmployeProfileState extends State<EmployeProfile> {
     );
   }
 
-  Widget textField(
-      String tittle, String hint, TextEditingController controller) {
+  Widget textField(String title, TextEditingController controller) {
     return Column(
       children: [
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: Alignment.center,
           child: Text(
-            tittle,
+            title,
             style: const TextStyle(
               fontFamily: "NexaBold",
               color: Colors.black87,
@@ -314,27 +341,28 @@ class _EmployeProfileState extends State<EmployeProfile> {
           ),
         ),
         Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          child: TextFormField(
-            enabled: isEditing,
-            controller: controller,
-            cursorColor: Colors.black54,
-            maxLines: 1,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: const TextStyle(
+          height: kToolbarHeight,
+          width: 356,
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(left: 11),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: Colors.black54,
+            ),
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: TextField(
+              controller: controller,
+              style: const TextStyle(
                 color: Colors.black54,
                 fontFamily: "NexaBold",
+                fontSize: 16,
               ),
-              enabledBorder: const OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.black54,
-                ),
-              ),
-              focusedBorder: const OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.black54,
-                ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
               ),
             ),
           ),
@@ -343,25 +371,21 @@ class _EmployeProfileState extends State<EmployeProfile> {
     );
   }
 
-  void showSnackBar(String text) {
+  void showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        behavior: SnackBarBehavior.floating,
-        content: Text(
-          text,
-        ),
+        content: Text(message),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  Future<void> logout(BuildContext context) async {
-    CircularProgressIndicator();
+  void logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (context) => LoginPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+      (route) => false,
     );
   }
 }

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'login.dart';
-// import 'model.dart';
+import 'package:elegant_notification/elegant_notification.dart';
 
 class resetPassword extends StatefulWidget {
   @override
@@ -14,6 +14,7 @@ class _resetPasswordState extends State<resetPassword> {
   _resetPasswordState();
 
   TextEditingController emailController = TextEditingController();
+  String message = '';
 
   @override
   Widget build(BuildContext context) {
@@ -80,8 +81,40 @@ class _resetPasswordState extends State<resetPassword> {
                 firebaseButton(context, "Reset Password", () {
                   FirebaseAuth.instance
                       .sendPasswordResetEmail(email: emailController.text)
-                      .then((value) => Navigator.of(context).pop());
-                })
+                      .then((value) {
+                    setState(() {
+                      message =
+                          'Reset password link has been sent to your email!';
+                    });
+                    ElegantNotification.success(
+                      title: const Text('Success'),
+                      description: Text(message),
+                    ).show(context);
+                    Navigator.of(context).pop();
+                  }).catchError((error) {
+                    setState(() {
+                      message = 'Failed to send reset password link.';
+                    });
+                    ElegantNotification.error(
+                      title: const Text('Error'),
+                      description:
+                          const Text('Failed to send reset password link.'),
+                    ).show(context);
+                  });
+                }),
+                if (message.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        color: message.contains('Failed')
+                            ? Colors.red
+                            : Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

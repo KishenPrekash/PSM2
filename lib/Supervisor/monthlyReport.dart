@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cool_alert/cool_alert.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:math' as math;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +18,7 @@ class MonthlyReport extends StatefulWidget {
 
 class _MonthlyReportState extends State<MonthlyReport> {
   int _selectedMonth = DateTime.now().month;
+  bool _isGeneratingChart = false;
   int _selectedYear = DateTime.now().year;
 
   void showLoadingDialog(BuildContext context) {
@@ -30,7 +34,7 @@ class _MonthlyReportState extends State<MonthlyReport> {
               children: [
                 CircularProgressIndicator(),
                 SizedBox(width: 16),
-                Text('Loading...'),
+                Text('Generating ...'),
               ],
             ),
           ),
@@ -42,11 +46,10 @@ class _MonthlyReportState extends State<MonthlyReport> {
   Future<void> _generateMonthlyReportPdf() async {
     showLoadingDialog(context);
     DateTime selectedDate = DateTime(_selectedYear, _selectedMonth, 1);
-
+    List<Employee> employeeList = [];
     QuerySnapshot snapshot =
         await FirebaseFirestore.instance.collection('Employee').get();
 
-    List<Employee> employeeList = [];
     int totalWorkingDays = 0;
 
     for (QueryDocumentSnapshot employeeSnapshot in snapshot.docs) {
@@ -217,6 +220,152 @@ class _MonthlyReportState extends State<MonthlyReport> {
     return totalActualWorkingDays;
   }
 
+  Future<void> _showChart() async {
+    showLoadingDialog(context);
+    DateTime selectedDate = DateTime(_selectedYear, _selectedMonth, 1);
+    List<Employee> employeeList = [];
+
+    // Retrieve all employees from the Firestore 'Employee' collection
+    QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('Employee').get();
+
+    int totalWorkingDays = 0;
+
+    // Iterate over each employee
+    for (QueryDocumentSnapshot employeeSnapshot in snapshot.docs) {
+      String employeeId = employeeSnapshot.id;
+
+      // Retrieve employee details
+      DocumentSnapshot employeeDoc = await FirebaseFirestore.instance
+          .collection('Employee')
+          .doc(employeeId)
+          .get();
+      String employeeName = employeeDoc.get('id');
+      String employeeDept = employeeDoc.get('dept');
+
+      // Retrieve attendance records for the selected month
+      QuerySnapshot attendanceSnapshot = await FirebaseFirestore.instance
+          .collection('Employee')
+          .doc(employeeId)
+          .collection('Record')
+          .where('date', isGreaterThanOrEqualTo: selectedDate)
+          .where('date', isLessThan: selectedDate.add(Duration(days: 30)))
+          .get();
+
+      int workingDays = 0;
+      int absentDays = 0;
+
+      // Iterate over each attendance record
+      for (QueryDocumentSnapshot attendanceDoc in attendanceSnapshot.docs) {
+        if (attendanceDoc.exists && attendanceDoc.data() != null) {
+          Map<String, dynamic>? attendanceData =
+              attendanceDoc.data() as Map<String, dynamic>?;
+
+          if (attendanceData != null && attendanceData.containsKey('checkIn')) {
+            DateTime attendanceDate =
+                (attendanceData['date'] as Timestamp).toDate();
+
+            // Check if the attendance date is a working day
+            if (_isWorkingDay(attendanceDate)) {
+              totalWorkingDays++;
+              workingDays++;
+            } else {
+              totalWorkingDays++;
+              absentDays++;
+            }
+          }
+        }
+      }
+
+      // Retrieve approved leave requests for the selected month
+      QuerySnapshot leaveSnapshot = await FirebaseFirestore.instance
+          .collection('Employee')
+          .doc(employeeId)
+          .collection('leaveRequests')
+          .where('status', isEqualTo: 'Approved')
+          .get();
+
+      int leavesTaken = 0;
+
+      // Iterate over each approved leave request
+      for (QueryDocumentSnapshot leaveDoc in leaveSnapshot.docs) {
+        DateTime startDate = leaveDoc['startDate'].toDate();
+        DateTime endDate = leaveDoc['endDate'].toDate();
+
+        // Check if the leave request falls within the selected month
+        if (startDate.month == selectedDate.month &&
+            endDate.month == selectedDate.month) {
+          leavesTaken++;
+        }
+      }
+
+      // Create an Employee object and add it to the list
+      employeeList.add(
+        Employee(
+          employeeId: employeeId,
+          employeeName: employeeName,
+          workingDays: workingDays,
+          leavesTaken: leavesTaken,
+          absentDays: absentDays,
+          employeedept: employeeDept,
+        ),
+      );
+    }
+
+    // Generate bar chart data based on employee working days
+    List<charts.Series<Employee, String>> seriesList = [
+      charts.Series<Employee, String>(
+        id: 'WorkingDays',
+        data: employeeList,
+        domainFn: (Employee employee, _) => employee.employeeName,
+        measureFn: (Employee employee, _) => employee.workingDays,
+        colorFn: (_, __) => charts.ColorUtil.fromDartColor(getRandomColor()),
+        labelAccessorFn: (Employee employee, _) => '${employee.workingDays}',
+      ),
+    ];
+
+    Widget barChart = charts.BarChart(
+      seriesList,
+      animate: true,
+      vertical: false,
+      defaultRenderer: charts.BarRendererConfig(
+        groupingType: charts.BarGroupingType.grouped, // Set the grouping type
+        strokeWidthPx: 2.0, // Adjust the bar border width
+        barRendererDecorator:
+            charts.BarLabelDecorator<String>(), // Bar label decorator
+        cornerStrategy:
+            const charts.ConstCornerStrategy(30), // Adjust the corner radius
+      ),
+    );
+    Navigator.pop(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Monthly Report - Chart (Working Days)'),
+          content: SizedBox(
+            height: 300,
+            child: barChart,
+          ),
+          actions: [
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Color getRandomColor() {
+    // Generate a random color
+    return Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
+        .withOpacity(1.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -305,6 +454,20 @@ class _MonthlyReportState extends State<MonthlyReport> {
                   ),
                 ),
                 child: Text('Download Report'),
+              ),
+              SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _showChart,
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.green,
+                  onPrimary: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  textStyle: TextStyle(fontSize: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text('Show Chart'),
               ),
             ],
           ),

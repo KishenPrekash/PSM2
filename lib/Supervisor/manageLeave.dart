@@ -359,7 +359,7 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                         String username =
                                                             'ttasting66@outlook.com';
                                                         String password =
-                                                            'Kp211200@';
+                                                            'Blackpanther21';
 
                                                         final smtpServer =
                                                             SmtpServer(
@@ -388,21 +388,35 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                                   message,
                                                                   smtpServer);
                                                           // ignore: use_build_context_synchronously
-                                                          CoolAlert.show(
-                                                            context: context,
-                                                            type: CoolAlertType
-                                                                .success,
-                                                            text:
-                                                                'Message sent: ${sendReport.toString()}',
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            SnackBar(
+                                                              content: Text(
+                                                                  'Message sent: ${sendReport.toString()}'),
+                                                              duration:
+                                                                  Duration(
+                                                                      seconds:
+                                                                          2),
+                                                              backgroundColor:
+                                                                  Colors.green,
+                                                            ),
                                                           );
                                                         } on MailerException catch (e) {
                                                           // ignore: use_build_context_synchronously
-                                                          CoolAlert.show(
-                                                            context: context,
-                                                            type: CoolAlertType
-                                                                .success,
-                                                            text:
-                                                                'Message not sent. ${e.toString()}',
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            SnackBar(
+                                                              content: Text(
+                                                                  'Message not sentt: ${e.toString()}'),
+                                                              duration:
+                                                                  Duration(
+                                                                      seconds:
+                                                                          2),
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                            ),
                                                           );
                                                         }
                                                       } else {
@@ -510,7 +524,7 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
                                                         String username =
                                                             'ttasting66@outlook.com';
                                                         String password =
-                                                            'Kp211200@';
+                                                            'Blackpanther21';
 
                                                         final smtpServer =
                                                             SmtpServer(
