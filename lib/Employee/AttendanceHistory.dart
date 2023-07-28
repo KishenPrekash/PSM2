@@ -56,6 +56,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                   ),
                 ),
+
+                //Display month and year
+
                 Container(
                   alignment: Alignment.centerRight,
                   margin: const EdgeInsets.only(top: 32),
@@ -129,6 +132,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
               ],
             ),
+
+            //Get record from database for selected month
             SizedBox(
               height: screenHeight / 1.45,
               child: StreamBuilder<QuerySnapshot>(
@@ -157,6 +162,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ),
                       );
                     }
+                    //Display the record from database
                     return ListView.builder(
                       itemCount: records.length,
                       itemBuilder: (context, index) {

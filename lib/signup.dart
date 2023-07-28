@@ -100,6 +100,7 @@ class _RegisterState extends State<Register> {
                         const SizedBox(
                           height: 50,
                         ),
+                        // Show the role (Employee or Supervisor)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -173,6 +174,7 @@ class _RegisterState extends State<Register> {
                         const SizedBox(
                           height: 20,
                         ),
+                        // Input email field
                         TextFormField(
                           controller: emailController,
                           decoration: InputDecoration(
@@ -209,6 +211,7 @@ class _RegisterState extends State<Register> {
                         const SizedBox(
                           height: 20,
                         ),
+                        // Input username field
                         TextFormField(
                           controller: empID,
                           decoration: InputDecoration(
@@ -248,6 +251,7 @@ class _RegisterState extends State<Register> {
                         const SizedBox(
                           height: 20,
                         ),
+                        // Input password field
                         TextFormField(
                           obscureText: _isObscure,
                           controller: passwordController,
@@ -276,6 +280,7 @@ class _RegisterState extends State<Register> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                           ),
+                          // Validation password
                           validator: (value) {
                             if (value!.isEmpty) {
                               return "Password cannot be empty";
@@ -305,6 +310,7 @@ class _RegisterState extends State<Register> {
                         const SizedBox(
                           height: 20,
                         ),
+                        // Input confirm password field
                         TextFormField(
                           obscureText: _isObscure2,
                           controller: confirmpassController,
@@ -363,6 +369,7 @@ class _RegisterState extends State<Register> {
                                 setState(() {
                                   showProgress = true;
                                 });
+                                // Once user click sign up button call function
                                 signUp(
                                     emailController.text,
                                     passwordController.text,
@@ -370,13 +377,13 @@ class _RegisterState extends State<Register> {
                                     empID.text,
                                     dept);
                               },
-                              child: Text(
+                              color: Colors.white,
+                              child: const Text(
                                 "Register",
                                 style: TextStyle(
                                   fontSize: 20,
                                 ),
                               ),
-                              color: Colors.white,
                             ),
                           ],
                         ),
@@ -409,23 +416,74 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  void signUp(String email, String password, String rool, String empID,
+// Save the deatils of user in database and system
+  void signUp(String email, String password, String role, String empID,
       String dept) async {
-    const CircularProgressIndicator();
     if (_formkey.currentState!.validate()) {
-      await _auth
-          .createUserWithEmailAndPassword(
-            email: email,
-            password: password,
-          )
-          .then((value) =>
-              {postDetailsToFirestore(rool, empID, password, email, dept)})
-          .catchError((e) {
-        e.toString();
+      // Check if email already exists
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // ignore: use_build_context_synchronously
+        ElegantNotification.error(
+                title: const Text("Error"),
+                description: const Text(
+                    "Email already exists. Please use a different email."))
+            .show(context);
+        return;
+      }
+
+      setState(() {
+        showProgress = true;
       });
+
+      try {
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
+        // Additional code for saving user details to Firestore
+        postDetailsToFirestore(role, empID, password, email, dept);
+      } on FirebaseAuthException catch (e) {
+        //Validation
+        if (e.code == 'weak-password') {
+          // ignore: use_build_context_synchronously
+          ElegantNotification.error(
+                  title: const Text("Error"),
+                  description: const Text("The password provided is too weak."))
+              .show(context);
+        } else if (e.code == 'email-already-in-use') {
+          // ignore: use_build_context_synchronously
+          ElegantNotification.error(
+                  title: const Text("Error"),
+                  description: const Text(
+                      "Email already exists. Please use a different email."))
+              .show(context);
+        } else {
+          // ignore: use_build_context_synchronously
+          ElegantNotification.error(
+                  title: const Text("Error"),
+                  description:
+                      const Text("An error occurred. Please try again later."))
+              .show(context);
+        }
+      } catch (e) {
+        // ignore: use_build_context_synchronously
+        ElegantNotification.error(
+                title: const Text("Error"),
+                description:
+                    const Text("An error occurred. Please try again later."))
+            .show(context);
+      }
     }
   }
 
+//Saving the user details to firestore
   postDetailsToFirestore(String rool, String empID, String password,
       String email, String dept) async {
     var user = _auth.currentUser;
@@ -443,9 +501,9 @@ class _RegisterState extends State<Register> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("No Face Detected"),
-                content: const Text(
+              return const AlertDialog(
+                title: Text("No Face Detected"),
+                content: Text(
                     "Please make sure your face is visible in the picture."),
               );
             },

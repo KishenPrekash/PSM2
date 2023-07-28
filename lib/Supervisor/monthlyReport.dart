@@ -43,6 +43,9 @@ class _MonthlyReportState extends State<MonthlyReport> {
     );
   }
 
+  //Function to generate a pdf file containing details of
+  //attendance record of all employee
+
   Future<void> _generateMonthlyReportPdf() async {
     showLoadingDialog(context);
     DateTime selectedDate = DateTime(_selectedYear, _selectedMonth, 1);

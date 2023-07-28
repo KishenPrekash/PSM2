@@ -34,6 +34,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
     loadEmployeeDetails();
   }
 
+  //Get employee details from database if exist
   void loadEmployeeDetails() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -65,7 +66,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   SizedBox(width: 10),
                   Text(
                     'Employee Profile',
@@ -78,6 +79,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
                   ),
                 ],
               ),
+              //Logout function
               actions: <Widget>[
                 Padding(
                   padding: const EdgeInsets.only(right: 20.0),
@@ -231,6 +233,7 @@ class _EmployeProfileState extends State<EmployeProfile> {
                     showSnackBar("Please enter your address!");
                   } else {
                     final user = FirebaseAuth.instance.currentUser;
+                    //Save info to the database
                     if (user != null) {
                       await FirebaseFirestore.instance
                           .collection("Employee")

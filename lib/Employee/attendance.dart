@@ -49,6 +49,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     _getRecord();
   }
 
+//Get the current location of employee
   void _getLocation() async {
     List<Placemark> placemark =
         await placemarkFromCoordinates(Employee.lat, Employee.long);
@@ -58,6 +59,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     });
   }
 
+  //Check if employee location is same as company location
   bool isEmployeeInCompanyLocation() {
     double companyLat = 1.55636628;
     double companyLng = 103.648055;
@@ -67,7 +69,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     double distance =
         calculateDistance(employeeLat, employeeLng, companyLat, companyLng);
 
-    double thresholdDistance = 100;
+    double thresholdDistance = 1;
 
     return distance <= thresholdDistance;
   }
@@ -388,16 +390,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         key: key,
                         onSubmit: () async {
                           if (Employee.lat != 0) {
+                            //Get location employee
                             _getLocation();
                             final now = DateTime.now();
                             final slideInTime =
                                 DateTime(now.year, now.month, now.day, 7, 30);
+                            //Check location of employee with company location
                             if (!isEmployeeInCompanyLocation()) {
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return AlertDialog(
-                                    title: Text("Cannot slide in"),
+                                    title: const Text("Cannot slide in"),
                                     content: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -409,14 +413,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                         ),
                                         const SizedBox(height: 10.0),
                                         TextButton(
-                                          child: Text(
-                                            "OK",
-                                            style: TextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
                                           style: ButtonStyle(
                                             backgroundColor:
                                                 MaterialStateProperty.all(
@@ -431,6 +427,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
+                                          child: const Text(
+                                            "OK",
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -445,19 +449,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               );
                               return; // Do not proceed with check-in
                             }
-                            // if (now.hour >= 8 &&
-                            //     now.minute > 0 &&
-                            //     checkOut == "--/--") {
-                            //   // Employee is late
-                            //   ElegantNotification.error(
-                            //     title: const Text("Late"),
-                            //     description:
-                            //         const Text("You have checked in late"),
-                            //   ).show(context);
-                            //   setState(() {
-                            //     checkInStatus = 'Late';
-                            //   });
-                            // }
+                            //Check if employee tries to check
+                            //in after working hours
                             if (now.hour >= 17 &&
                                 checkOut == "--/--" &&
                                 checkIn == "--/--") {
@@ -512,6 +505,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 },
                               );
                               return; // Do not proceed with check-in
+
+                              //Check if employee tries to slide in during weekends
                             } else if (now.weekday == DateTime.saturday ||
                                 now.weekday == DateTime.sunday) {
                               // Show a message to the user and do not get the location
@@ -620,6 +615,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               return; // Do not proceed with check-in
                             }
 
+                            //Prompt user to take picture
+
                             final pickedFile = await ImagePicker()
                                 .getImage(source: ImageSource.camera);
                             if (pickedFile == null) {
@@ -628,6 +625,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             }
                             final inputImage =
                                 InputImage.fromFilePath(pickedFile.path);
+
+                            //Detect face in the picture
 
                             final options = FaceDetectorOptions();
                             final faceDetector = FaceDetector(options: options);
@@ -693,6 +692,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               final result =
                                   await photoUrl.compareTo(pickedFile.path);
 
+                              //If face is similar then record attendance
                               if (result == 1) {
                                 // ignore: use_build_context_synchronously
                                 CoolAlert.show(
@@ -710,6 +710,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 return;
                               }
                             }
+
+                            //Save record in database for employee
                             final snap = await FirebaseFirestore.instance
                                 .collection("Employee")
                                 .where('id', isEqualTo: Employee.employeeId)
@@ -748,6 +750,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   checkInStatus = 'Late';
                                 });
                               }
+
+                              //Store time and location
 
                               await FirebaseFirestore.instance
                                   .collection("Employee")
@@ -935,201 +939,196 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 }
 
+// final LocalAuthentication localAuth =
+//                               LocalAuthentication();
+//                           bool canCheckBiometrics =
+//                               await localAuth.canCheckBiometrics;
 
+//                           if (canCheckBiometrics) {
+//                             bool isFingerprintAuthSuccessful =
+//                                 await localAuth.authenticate(
+//                                     localizedReason:
+//                                         'Please authenticate to proceed',
+//                                     options: const AuthenticationOptions(
+//                                         biometricOnly: true));
 
-  // final LocalAuthentication localAuth =
-  //                               LocalAuthentication();
-  //                           bool canCheckBiometrics =
-  //                               await localAuth.canCheckBiometrics;
+//                             if (!isFingerprintAuthSuccessful) {
+//                               // Fingerprint authentication successful
+//                               // ignore: use_build_context_synchronously
+//                               ScaffoldMessenger.of(context).showSnackBar(
+//                                 const SnackBar(
+//                                   content: Text(
+//                                       'Fingerprint authentication failed'),
+//                                 ),
+//                               );
+//                               return;
+//                             } else {
+//                               // Fingerprint authentication failed
+//                               // ignore: use_build_context_synchronously
+//                               ScaffoldMessenger.of(context).showSnackBar(
+//                                 const SnackBar(
+//                                   content: Text(
+//                                       'Fingerprint authentication successful'),
+//                                 ),
+//                               );
+//                             }
+//                           } else {
+//                             // ignore: use_build_context_synchronously
+//                             ScaffoldMessenger.of(context).showSnackBar(
+//                               const SnackBar(
+//                                 content: Text('Authentication Error'),
+//                               ),
+//                             );
+//                             return;
+//                           }
 
-  //                           if (canCheckBiometrics) {
-  //                             bool isFingerprintAuthSuccessful =
-  //                                 await localAuth.authenticate(
-  //                                     localizedReason:
-  //                                         'Please authenticate to proceed',
-  //                                     options: const AuthenticationOptions(
-  //                                         biometricOnly: true));
+// final pickedFile = await ImagePicker()
+//                               .getImage(source: ImageSource.camera);
+//                           if (pickedFile == null) {
+//                             // User did not take a picture
+//                             return;
+//                           }
 
-  //                             if (!isFingerprintAuthSuccessful) {
-  //                               // Fingerprint authentication successful
-  //                               // ignore: use_build_context_synchronously
-  //                               ScaffoldMessenger.of(context).showSnackBar(
-  //                                 const SnackBar(
-  //                                   content: Text(
-  //                                       'Fingerprint authentication failed'),
-  //                                 ),
-  //                               );
-  //                               return;
-  //                             } else {
-  //                               // Fingerprint authentication failed
-  //                               // ignore: use_build_context_synchronously
-  //                               ScaffoldMessenger.of(context).showSnackBar(
-  //                                 const SnackBar(
-  //                                   content: Text(
-  //                                       'Fingerprint authentication successful'),
-  //                                 ),
-  //                               );
-  //                             }
-  //                           } else {
-  //                             // ignore: use_build_context_synchronously
-  //                             ScaffoldMessenger.of(context).showSnackBar(
-  //                               const SnackBar(
-  //                                 content: Text('Authentication Error'),
-  //                               ),
-  //                             );
-  //                             return;
-  //                           }
+//                           // Verify the picture with the picture stored in Firebase
+//                           final storageRef = FirebaseStorage.instance
+//                               .ref()
+//                               .child('employee_photos/${Employee.id}');
+//                           final downloadUrl =
+//                               await storageRef.getDownloadURL();
+//                           final pic1 = await http.get(Uri.parse(downloadUrl));
+//                           final bytes1 = pic1.bodyBytes;
+//                           final pic2 = await pickedFile.readAsBytes();
 
+//                           final result = await compareImages(
+//                               src1: bytes1,
+//                               src2: pic2,
+//                               algorithm: ChiSquareDistanceHistogram());
 
-  // final pickedFile = await ImagePicker()
-  //                               .getImage(source: ImageSource.camera);
-  //                           if (pickedFile == null) {
-  //                             // User did not take a picture
-  //                             return;
-  //                           }
+//                           if (result < 0.9) {
+//                             showDialog(
+//                               context: context,
+//                               builder: (BuildContext context) {
+//                                 return AlertDialog(
+//                                   title: Text("Cannot slide in"),
+//                                   content: Column(
+//                                     mainAxisSize: MainAxisSize.min,
+//                                     children: [
+//                                       Text(
+//                                         "The picture you took does not match the picture we have on file.",
+//                                         style: TextStyle(
+//                                           fontSize: 16.0,
+//                                         ),
+//                                       ),
+//                                       SizedBox(height: 10.0),
+//                                       TextButton(
+//                                         child: Text(
+//                                           "OK",
+//                                           style: TextStyle(
+//                                             fontSize: 16.0,
+//                                             fontWeight: FontWeight.bold,
+//                                             color: Colors.white,
+//                                           ),
+//                                         ),
+//                                         style: ButtonStyle(
+//                                           backgroundColor:
+//                                               MaterialStateProperty.all(
+//                                             Colors.blue,
+//                                           ),
+//                                           padding: MaterialStateProperty.all(
+//                                             EdgeInsets.symmetric(
+//                                               horizontal: 20.0,
+//                                               vertical: 10.0,
+//                                             ),
+//                                           ),
+//                                         ),
+//                                         onPressed: () {
+//                                           Navigator.of(context).pop();
+//                                         },
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   shape: RoundedRectangleBorder(
+//                                     borderRadius: BorderRadius.circular(20.0),
+//                                   ),
+//                                   backgroundColor: Colors.white,
+//                                   elevation: 5.0,
+//                                   contentPadding: EdgeInsets.all(20.0),
+//                                 );
+//                               },
+//                             );
+//                             return; // Do not proceed with check-in
+//                           } else {
+//                             ScaffoldMessenger.of(context).showSnackBar(
+//                               SnackBar(
+//                                 content: Text("Successfully Recorded"),
+//                                 backgroundColor: Colors.red,
+//                               ),
+//                             );
+//                           }
 
-  //                           // Verify the picture with the picture stored in Firebase
-  //                           final storageRef = FirebaseStorage.instance
-  //                               .ref()
-  //                               .child('employee_photos/${Employee.id}');
-  //                           final downloadUrl =
-  //                               await storageRef.getDownloadURL();
-  //                           final pic1 = await http.get(Uri.parse(downloadUrl));
-  //                           final bytes1 = pic1.bodyBytes;
-  //                           final pic2 = await pickedFile.readAsBytes();
+// final List<BiometricType> availableBiometrics =
+//                               await localAuth.getAvailableBiometrics();
+//                           print(availableBiometrics);
 
-  //                           final result = await compareImages(
-  //                               src1: bytes1,
-  //                               src2: pic2,
-  //                               algorithm: ChiSquareDistanceHistogram());
+//                           bool isAuthenticated = await localAuth.authenticate(
+//                               localizedReason: 'Authenticate to proceed',
+//                               options: const AuthenticationOptions(
+//                                   stickyAuth: true));
 
-  //                           if (result < 0.9) {
-  //                             showDialog(
-  //                               context: context,
-  //                               builder: (BuildContext context) {
-  //                                 return AlertDialog(
-  //                                   title: Text("Cannot slide in"),
-  //                                   content: Column(
-  //                                     mainAxisSize: MainAxisSize.min,
-  //                                     children: [
-  //                                       Text(
-  //                                         "The picture you took does not match the picture we have on file.",
-  //                                         style: TextStyle(
-  //                                           fontSize: 16.0,
-  //                                         ),
-  //                                       ),
-  //                                       SizedBox(height: 10.0),
-  //                                       TextButton(
-  //                                         child: Text(
-  //                                           "OK",
-  //                                           style: TextStyle(
-  //                                             fontSize: 16.0,
-  //                                             fontWeight: FontWeight.bold,
-  //                                             color: Colors.white,
-  //                                           ),
-  //                                         ),
-  //                                         style: ButtonStyle(
-  //                                           backgroundColor:
-  //                                               MaterialStateProperty.all(
-  //                                             Colors.blue,
-  //                                           ),
-  //                                           padding: MaterialStateProperty.all(
-  //                                             EdgeInsets.symmetric(
-  //                                               horizontal: 20.0,
-  //                                               vertical: 10.0,
-  //                                             ),
-  //                                           ),
-  //                                         ),
-  //                                         onPressed: () {
-  //                                           Navigator.of(context).pop();
-  //                                         },
-  //                                       ),
-  //                                     ],
-  //                                   ),
-  //                                   shape: RoundedRectangleBorder(
-  //                                     borderRadius: BorderRadius.circular(20.0),
-  //                                   ),
-  //                                   backgroundColor: Colors.white,
-  //                                   elevation: 5.0,
-  //                                   contentPadding: EdgeInsets.all(20.0),
-  //                                 );
-  //                               },
-  //                             );
-  //                             return; // Do not proceed with check-in
-  //                           } else {
-  //                             ScaffoldMessenger.of(context).showSnackBar(
-  //                               SnackBar(
-  //                                 content: Text("Successfully Recorded"),
-  //                                 backgroundColor: Colors.red,
-  //                               ),
-  //                             );
-  //                           }
-
-  // final List<BiometricType> availableBiometrics =
-  //                               await localAuth.getAvailableBiometrics();
-  //                           print(availableBiometrics);
-
-  //                           bool isAuthenticated = await localAuth.authenticate(
-  //                               localizedReason: 'Authenticate to proceed',
-  //                               options: const AuthenticationOptions(
-  //                                   stickyAuth: true));
-
-  //                           if (!isAuthenticated) {
-  //                             // Authentication failed, show an error message
-  //                             showDialog(
-  //                               context: context,
-  //                               builder: (BuildContext context) {
-  //                                 return AlertDialog(
-  //                                   title: Text("Authentication Failed"),
-  //                                   content: Column(
-  //                                     mainAxisSize: MainAxisSize.min,
-  //                                     children: [
-  //                                       Text(
-  //                                         "You are not authenticated. Please try again.",
-  //                                         style: TextStyle(
-  //                                           fontSize: 16.0,
-  //                                         ),
-  //                                       ),
-  //                                       SizedBox(height: 10.0),
-  //                                       TextButton(
-  //                                         child: Text(
-  //                                           "OK",
-  //                                           style: TextStyle(
-  //                                             fontSize: 16.0,
-  //                                             fontWeight: FontWeight.bold,
-  //                                             color: Colors.white,
-  //                                           ),
-  //                                         ),
-  //                                         style: ButtonStyle(
-  //                                           backgroundColor:
-  //                                               MaterialStateProperty.all(
-  //                                                   Colors.blue),
-  //                                           padding: MaterialStateProperty.all(
-  //                                             EdgeInsets.symmetric(
-  //                                               horizontal: 20.0,
-  //                                               vertical: 10.0,
-  //                                             ),
-  //                                           ),
-  //                                         ),
-  //                                         onPressed: () {
-  //                                           Navigator.of(context).pop();
-  //                                         },
-  //                                       ),
-  //                                     ],
-  //                                   ),
-  //                                   shape: RoundedRectangleBorder(
-  //                                     borderRadius: BorderRadius.circular(20.0),
-  //                                   ),
-  //                                   backgroundColor: Colors.white,
-  //                                   elevation: 5.0,
-  //                                   contentPadding: EdgeInsets.all(20.0),
-  //                                 );
-  //                               },
-  //                             );
-  //                             return; // Do not proceed with check-in
-  //                           }
-
-
+//                           if (!isAuthenticated) {
+//                             // Authentication failed, show an error message
+//                             showDialog(
+//                               context: context,
+//                               builder: (BuildContext context) {
+//                                 return AlertDialog(
+//                                   title: Text("Authentication Failed"),
+//                                   content: Column(
+//                                     mainAxisSize: MainAxisSize.min,
+//                                     children: [
+//                                       Text(
+//                                         "You are not authenticated. Please try again.",
+//                                         style: TextStyle(
+//                                           fontSize: 16.0,
+//                                         ),
+//                                       ),
+//                                       SizedBox(height: 10.0),
+//                                       TextButton(
+//                                         child: Text(
+//                                           "OK",
+//                                           style: TextStyle(
+//                                             fontSize: 16.0,
+//                                             fontWeight: FontWeight.bold,
+//                                             color: Colors.white,
+//                                           ),
+//                                         ),
+//                                         style: ButtonStyle(
+//                                           backgroundColor:
+//                                               MaterialStateProperty.all(
+//                                                   Colors.blue),
+//                                           padding: MaterialStateProperty.all(
+//                                             EdgeInsets.symmetric(
+//                                               horizontal: 20.0,
+//                                               vertical: 10.0,
+//                                             ),
+//                                           ),
+//                                         ),
+//                                         onPressed: () {
+//                                           Navigator.of(context).pop();
+//                                         },
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   shape: RoundedRectangleBorder(
+//                                     borderRadius: BorderRadius.circular(20.0),
+//                                   ),
+//                                   backgroundColor: Colors.white,
+//                                   elevation: 5.0,
+//                                   contentPadding: EdgeInsets.all(20.0),
+//                                 );
+//                               },
+//                             );
+//                             return; // Do not proceed with check-in
+//                           }
 
 // final pickedFile = await ImagePicker().getImage(source: ImageSource.camera);
 // if (pickedFile == null) {

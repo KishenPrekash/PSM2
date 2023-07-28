@@ -54,7 +54,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           return Column(
             children: [
               SizedBox(height: 16),
-              Text(
+              const Text(
                 'Summary',
                 style: TextStyle(
                   fontSize: 20,
@@ -69,13 +69,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     children: [
                       Text(
                         lateCount.toString(),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.red,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'Late',
                         style: TextStyle(
                           fontSize: 16,
@@ -89,13 +89,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     children: [
                       Text(
                         absentCount.toString(),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'Absent',
                         style: TextStyle(
                           fontSize: 16,
@@ -109,13 +109,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     children: [
                       Text(
                         punctualCount.toString(),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'Punctual',
                         style: TextStyle(
                           fontSize: 16,
@@ -197,7 +197,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     children: [
                                       Text(
                                         name,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black87,
@@ -206,7 +206,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                       SizedBox(height: 8),
                                       Text(
                                         position,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 16,
                                           color: Colors.black,
                                         ),
@@ -214,7 +214,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                       SizedBox(height: 8),
                                       Text(
                                         department, // Display the department value
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 16,
                                           color: Colors.black,
                                         ),

@@ -1,8 +1,5 @@
-import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'login.dart';
 import 'package:elegant_notification/elegant_notification.dart';
 
 class resetPassword extends StatefulWidget {
@@ -59,6 +56,7 @@ class _resetPasswordState extends State<resetPassword> {
                       borderRadius: new BorderRadius.circular(10),
                     ),
                   ),
+                  //Validation for email input
                   validator: (value) {
                     if (value!.length == 0) {
                       return "Email cannot be empty";
@@ -78,6 +76,7 @@ class _resetPasswordState extends State<resetPassword> {
                 const SizedBox(
                   height: 20,
                 ),
+                //Calling function by passing email as a parameter and send email
                 firebaseButton(context, "Reset Password", () {
                   FirebaseAuth.instance
                       .sendPasswordResetEmail(email: emailController.text)

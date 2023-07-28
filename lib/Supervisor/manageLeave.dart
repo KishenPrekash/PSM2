@@ -13,6 +13,7 @@ class ManageLeaveScreen extends StatefulWidget {
 }
 
 class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
+  //Function to add the approved and rejected request to database
   void addToHistoryCollection(
       String supervisorId, Map<String, dynamic> leaveRequestData) {
     // Assuming you have a "supervisorId" variable available
@@ -36,7 +37,7 @@ class _ManageLeaveScreenState extends State<ManageLeaveScreen> {
           height: 300,
           child: Column(
             children: [
-              Padding(
+              const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
                   'History',

@@ -34,6 +34,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
     }
   }
 
+  // Function select end and start date
   Future<void> _selectEndDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -48,6 +49,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
     }
   }
 
+  // Function to submit employee's leave request and save in database
   Future<void> _submitLeaveRequest() async {
     QuerySnapshot snap = await FirebaseFirestore.instance
         .collection("Employee")
@@ -187,6 +189,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(primary: primary),
+                  //Call function to submit
                   onPressed: () => _submitLeaveRequest(),
                   child: Text('Submit'),
                 ),

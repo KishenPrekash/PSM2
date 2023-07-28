@@ -117,6 +117,7 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
+                          // Validation for Email during login
                           validator: (value) {
                             if (value!.isEmpty) {
                               showSnackBar('Email cannot be empty');
@@ -162,6 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
+                          // Validation for Password during login
                           validator: (value) {
                             RegExp regex = RegExp(r'^.{6,}$');
                             if (value!.isEmpty) {
@@ -193,6 +195,7 @@ class _LoginPageState extends State<LoginPage> {
                             setState(() {
                               visible = false;
                             });
+                            //Once login button click call function
                             signIn(
                                 emailController.text, passwordController.text);
                           },
@@ -240,6 +243,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  //Navigate the user to employee or supervisor dashboard based on role
   void route() async {
     User? user = FirebaseAuth.instance.currentUser;
     var kk = FirebaseFirestore.instance
@@ -298,6 +302,7 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  // Check if the email and password entered is in the database
   void signIn(String email, String password) async {
     if (_formkey.currentState!.validate()) {
       try {
@@ -333,6 +338,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // Forgot password navigation
   Widget forgotPassword(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width,
